@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(supabase --version)",
+      "Bash(supabase status:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_9ba6130693b97486b6f46e2c5bbbf48801af46eb supabase db query --linked \"SELECT current_database\\(\\);\")",
+      "Bash(npm install:*)",
+      "Bash(npx supabase:*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in {**d.get\\('dependencies',{}\\),**d.get\\('devDependencies',{}\\)}.items\\(\\)}, indent=2\\)\\)\")",
+      "WebSearch",
+      "Bash(npx tsc:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}, indent=2\\)\\)\")",
+      "Bash(xargs sed *)"
+    ]
+  }
+}

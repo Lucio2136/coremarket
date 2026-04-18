@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Azeret+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes flash-up {
+    0%   { opacity: 1; }
+    25%  { opacity: 0.25; color: #16a34a; }
+    100% { opacity: 1; }
+  }
+  @keyframes flash-down {
+    0%   { opacity: 1; }
+    25%  { opacity: 0.25; color: #e11d48; }
+    100% { opacity: 1; }
+  }
+  .flash-up   { animation: flash-up   0.55s ease-out; }
+  .flash-down { animation: flash-down 0.55s ease-out; }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 220 13% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 9%;
+
+    --primary: 220 13% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 220 9% 96%;
+    --secondary-foreground: 220 13% 9%;
+
+    --muted: 220 9% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 9% 96%;
+    --accent-foreground: 220 13% 9%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 13% 9%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 220 9% 30%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-primary: 222 47% 11%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 220 14% 94%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-ring: 220 13% 9%;
+
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .dark {
+    --background: 222 47% 4%;
+    --foreground: 220 13% 95%;
+
+    --card: 222 40% 7%;
+    --card-foreground: 220 13% 95%;
+
+    --popover: 222 40% 7%;
+    --popover-foreground: 220 13% 95%;
+
+    --primary: 0 0% 95%;
+    --primary-foreground: 222 47% 4%;
+
+    --secondary: 222 30% 12%;
+    --secondary-foreground: 220 13% 95%;
+
+    --muted: 222 30% 12%;
+    --muted-foreground: 220 9% 55%;
+
+    --accent: 222 30% 12%;
+    --accent-foreground: 220 13% 95%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 220 13% 95%;
+
+    --border: 222 30% 14%;
+    --input: 222 30% 14%;
+    --ring: 220 13% 95%;
+
+    --sidebar-background: 222 40% 6%;
+    --sidebar-foreground: 220 9% 55%;
+    --sidebar-border: 222 30% 12%;
+    --sidebar-primary: 220 13% 95%;
+    --sidebar-primary-foreground: 222 47% 4%;
+    --sidebar-accent: 222 30% 12%;
+    --sidebar-accent-foreground: 220 13% 95%;
+    --sidebar-ring: 220 13% 95%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  /* Azeret Mono para todo lo numérico */
+  .font-mono,
+  .tabular-nums,
+  [class*="font-mono"] {
+    font-family: 'Azeret Mono', monospace;
+    font-feature-settings: "tnum";
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* iOS momentum scroll for horizontal/vertical overflow containers */
+  .scroll-touch {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  /* Prevent 300ms tap delay on iOS & Android and disable double-tap zoom */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Safe area padding for iPhones with notch/Dynamic Island */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .font-display {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-numeric {
+    font-family: 'Azeret Mono', monospace;
+    font-feature-settings: "tnum";
+  }
+
+  /* Subtle card shadow used across the app */
+  .shadow-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .shadow-card-hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+}
