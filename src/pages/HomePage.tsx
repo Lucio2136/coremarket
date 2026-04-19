@@ -212,9 +212,11 @@ export default function HomePage() {
   return (
     <div className="space-y-5">
 
-    {/* ── Hero / Featured (sin filtros activos) ── */}
+    {/* ── Hero / Featured (solo desktop, sin filtros activos) ── */}
     {!loading && markets.length > 0 && !cat && !q && (
-      <FeaturedSection markets={markets} />
+      <div className="hidden xl:block">
+        <FeaturedSection markets={markets} />
+      </div>
     )}
 
     <div className="flex gap-7 items-start">

@@ -90,16 +90,16 @@ serve(async (req) => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: 'QUOTR <noreply@quotr.mx>',
+            from: 'LUCEBASE <noreply@lucebase.mx>',
             to: [email],
-            subject: '¡Ganaste en QUOTR!',
+            subject: '¡Ganaste en LUCEBASE!',
             html: `
               <h2>¡Felicidades, ${username}!</h2>
               <p>Ganaste <strong>$${payout.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN</strong>
                  en el mercado:</p>
               <blockquote>${market.title}</blockquote>
               <p>El monto ya fue acreditado a tu cuenta.</p>
-              <p>— El equipo de QUOTR</p>
+              <p>— El equipo de LUCEBASE</p>
             `,
           }),
         })

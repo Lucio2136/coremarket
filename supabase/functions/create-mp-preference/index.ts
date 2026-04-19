@@ -36,12 +36,12 @@ serve(async (req) => {
     const mpAccessToken = Deno.env.get("MP_ACCESS_TOKEN")
     if (!mpAccessToken) throw new Error("MP_ACCESS_TOKEN no configurado")
 
-    const baseUrl = origin || "https://coremarket.mx"
+    const baseUrl = origin || "https://lucebase.mx"
     const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/mp-webhook`
 
     const preference = {
       items: [{
-        title: "Depósito Coremarket",
+        title: "Depósito Lucebase",
         quantity: 1,
         unit_price: amount_mxn,
         currency_id: "MXN",

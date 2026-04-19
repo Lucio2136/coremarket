@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const ALLOWED_ORIGINS = [
-  "https://coremarket.mx",
-  "https://www.coremarket.mx",
+  "https://lucebase.mx",
+  "https://www.lucebase.mx",
   "http://localhost:8080",
   "http://localhost:3000",
 ]
@@ -11,7 +11,7 @@ const ALLOWED_ORIGINS = [
 function corsHeaders(reqOrigin: string | null) {
   const origin = reqOrigin && ALLOWED_ORIGINS.includes(reqOrigin)
     ? reqOrigin
-    : "https://coremarket.mx"
+    : "https://lucebase.mx"
   return {
     "Access-Control-Allow-Origin":  origin,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -51,7 +51,7 @@ serve(async (req) => {
     const rawOrigin = String(body?.origin ?? "")
     const safeOrigin = ALLOWED_ORIGINS.includes(rawOrigin)
       ? rawOrigin
-      : "https://coremarket.mx"
+      : "https://lucebase.mx"
 
     // Verificar sistema congelado
     const { data: settings } = await supabase
@@ -74,7 +74,7 @@ serve(async (req) => {
         phone: "5519562339", // requerido por Conekta; se puede actualizar con perfil
       },
       line_items: [{
-        name:       "Depósito Coremarket",
+        name:       "Depósito Lucebase",
         quantity:   1,
         unit_price: amount_mxn * 100, // centavos
       }],
