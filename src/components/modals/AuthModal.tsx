@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -42,6 +42,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
   const [referralCode, setReferral] = useState("");
   const [loading, setLoading]       = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"google" | "facebook" | null>(null);
+  const [showLoginPw, setShowLoginPw]   = useState(false);
+  const [showSignupPw, setShowSignupPw] = useState(false);
   const { signIn, signUp, signInWithGoogle, signInWithFacebook, resetPasswordEmail } = useAuth();
 
   const reset = () => { setEmail(""); setPassword(""); setUsername(""); setReferral(""); };
@@ -248,7 +250,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                         ¿Olvidaste tu contraseña?
                       </button>
                     </div>
-                    <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="bg-gray-50 border-gray-200" />
+                    <div className="relative">
+                      <Input id="login-password" type={showLoginPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="bg-gray-50 border-gray-200 pr-10" />
+                      <button type="button" onClick={() => setShowLoginPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showLoginPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </CardContent>
@@ -343,7 +350,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="signup-password">Contraseña</Label>
-                    <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required minLength={6} className="bg-gray-50 border-gray-200" />
+                    <div className="relative">
+                      <Input id="signup-password" type={showSignupPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required minLength={6} className="bg-gray-50 border-gray-200 pr-10" />
+                      <button type="button" onClick={() => setShowSignupPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showSignupPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </CardContent>

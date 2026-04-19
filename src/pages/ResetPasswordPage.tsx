@@ -9,6 +9,7 @@ export default function ResetPasswordPage() {
   const [password, setPassword]   = useState("");
   const [confirm, setConfirm]     = useState("");
   const [showPw, setShowPw]       = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading]     = useState(false);
   const [done, setDone]           = useState(false);
   const [validSession, setValid]  = useState(false);
@@ -121,15 +122,24 @@ export default function ResetPasswordPage() {
 
           <div className="space-y-1.5">
             <label className="text-[13px] font-semibold text-gray-700">Confirmar contraseña</label>
-            <input
-              type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              placeholder="Repite la contraseña"
-              required
-              minLength={6}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-blue-400 transition-colors"
-            />
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="Repite la contraseña"
+                required
+                minLength={6}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-sm text-gray-800 focus:outline-none focus:border-blue-400 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
             {confirm && password !== confirm && (
               <p className="text-[11px] text-rose-500 font-medium">Las contraseñas no coinciden</p>
             )}

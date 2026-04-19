@@ -11,7 +11,7 @@ import {
   Wallet, TrendingUp, Target, Plus, LogIn,
   ArrowDownCircle, ArrowUpCircle, Trophy, Loader2,
   ArrowLeftRight, Clock, CheckCircle, XCircle, Building2,
-  Pencil, X, Check, Lock, Camera, Trash2,
+  Pencil, X, Check, Lock, Camera, Trash2, Eye, EyeOff,
 } from "lucide-react";
 import { Transaction } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -181,6 +181,7 @@ export default function ProfilePage() {
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw]         = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+  const [showPws, setShowPws]     = useState([false, false, false]);
   const [pwSaving, setPwSaving]   = useState(false);
 
   const startEdit = () => {
@@ -446,15 +447,23 @@ export default function ProfilePage() {
                   { label: "Contraseña actual", val: currentPw, set: setCurrentPw },
                   { label: "Nueva contraseña",  val: newPw,     set: setNewPw     },
                   { label: "Confirmar nueva",   val: confirmPw, set: setConfirmPw },
-                ].map(({ label, val, set }) => (
-                  <input
-                    key={label}
-                    type="password"
-                    placeholder={label}
-                    value={val}
-                    onChange={(e) => set(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-blue-400 transition-colors"
-                  />
+                ].map(({ label, val, set }, i) => (
+                  <div key={label} className="relative">
+                    <input
+                      type={showPws[i] ? "text" : "password"}
+                      placeholder={label}
+                      value={val}
+                      onChange={(e) => set(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 pr-10 text-sm text-gray-900 focus:outline-none focus:border-blue-400 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPws(s => s.map((v, j) => j === i ? !v : v))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPws[i] ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
                 ))}
                 <button
                   onClick={savePassword}
