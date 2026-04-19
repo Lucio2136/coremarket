@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { X, Banknote, Building2, Shield, ChevronRight, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface WithdrawModalProps {
   open: boolean;
@@ -124,19 +125,16 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ open, onOpenChange
 
                   <div className="grid grid-cols-5 gap-2">
                     {QUICK_AMOUNTS.map((v) => (
-                      <button
+                      <Button
                         key={v}
                         type="button"
+                        variant={numAmount === v ? "primary" : "quick"}
                         onClick={() => setAmount(String(v))}
                         disabled={v > balance}
-                        className={`py-3 rounded-xl text-[13px] font-bold border transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
-                          numAmount === v
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        }`}
+                        className="justify-center w-full"
                       >
                         ${v >= 1000 ? `${v / 1000}k` : v}
-                      </button>
+                      </Button>
                     ))}
                   </div>
 
@@ -218,10 +216,10 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ open, onOpenChange
                 </div>
 
                 {/* Botón */}
-                <button
+                <Button
+                  variant="cta"
                   type="submit"
                   disabled={loading || !isValid}
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-[15px] rounded-2xl transition-colors shadow-sm active:scale-[0.98]"
                 >
                   {loading ? (
                     <>
@@ -236,7 +234,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({ open, onOpenChange
                       {isValid && <ChevronRight size={17} />}
                     </>
                   )}
-                </button>
+                </Button>
 
                 <p className="text-[11px] text-center text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1.5 -mt-2 pb-1">
                   <Shield size={11} />

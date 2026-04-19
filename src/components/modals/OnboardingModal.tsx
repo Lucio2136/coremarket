@@ -8,7 +8,7 @@ const STEPS = [
     icon: TrendingUp,
     color: "text-emerald-600",
     bg: "bg-emerald-50",
-    title: "Bienvenido a Coremarket",
+    title: "Bienvenido a Lucebase",
     body: "El mercado de predicciones en español. Aquí apuestas sobre lo que dirán o harán personajes públicos — y ganas si aciertas.",
     cta: "Siguiente",
   },

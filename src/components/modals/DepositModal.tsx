@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { X, Shield, ChevronRight, Banknote, CreditCard, Building2, MailWarning } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DepositModalProps {
   open: boolean;
@@ -119,18 +120,15 @@ export const DepositModal: React.FC<DepositModalProps> = ({ open, onOpenChange }
 
                   <div className="grid grid-cols-5 gap-2">
                     {QUICK_AMOUNTS.map((v) => (
-                      <button
+                      <Button
                         key={v}
                         type="button"
+                        variant={numAmount === v ? "primary" : "quick"}
                         onClick={() => setAmount(String(v))}
-                        className={`py-3 rounded-xl text-[13px] font-bold border transition-all active:scale-95 ${
-                          numAmount === v
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                        }`}
+                        className="justify-center w-full"
                       >
                         ${v >= 1000 ? `${v / 1000}k` : v}
-                      </button>
+                      </Button>
                     ))}
                   </div>
 
@@ -171,10 +169,10 @@ export const DepositModal: React.FC<DepositModalProps> = ({ open, onOpenChange }
                 </div>
 
                 {/* Botón CTA */}
-                <button
+                <Button
+                  variant="cta"
                   onClick={handleDeposit}
                   disabled={loading || numAmount < 100 || !emailVerified}
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-[15px] rounded-2xl transition-colors shadow-sm active:scale-[0.98]"
                 >
                   {loading ? (
                     <>
@@ -189,7 +187,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ open, onOpenChange }
                       {numAmount >= 100 && <ChevronRight size={17} />}
                     </>
                   )}
-                </button>
+                </Button>
 
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center flex items-center justify-center gap-1.5 -mt-2 pb-1">
                   <Shield size={11} />

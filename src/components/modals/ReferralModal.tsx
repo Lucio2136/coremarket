@@ -50,7 +50,7 @@ export function ReferralModal({ open, onOpenChange }: ReferralModalProps) {
 
         {/* Descripción */}
         <div style={{ backgroundColor: "#f5f3ff", border: "1px solid #ede9fe", borderRadius: 12, padding: "12px 16px", fontSize: 13, color: "#5b21b6", lineHeight: 1.6, marginBottom: 16 }}>
-          Invita a tus amigos a Coremarket. Cuando se registren con tu código,{" "}
+          Invita a tus amigos a Lucebase. Cuando se registren con tu código,{" "}
           <strong>ambos reciben $50 MXN</strong> de bono directo a su saldo.
         </div>
 

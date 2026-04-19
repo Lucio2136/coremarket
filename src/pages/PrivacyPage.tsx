@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 const SECTIONS = [
   {
     title: "1. Responsable del tratamiento",
-    body: `Coremarket (en adelante "nosotros" o "la Plataforma") es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y su Reglamento, vigentes en los Estados Unidos Mexicanos. Para cualquier asunto relacionado con el tratamiento de tus datos puedes contactarnos en: contacto@coremarket.mx.`,
+    body: `Lucebase (en adelante "nosotros" o "la Plataforma") es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y su Reglamento, vigentes en los Estados Unidos Mexicanos. Para cualquier asunto relacionado con el tratamiento de tus datos puedes contactarnos en: contacto@lucebase.mx.`,
   },
   {
     title: "2. Datos personales que recopilamos",
@@ -11,11 +11,11 @@ const SECTIONS = [
   },
   {
     title: "3. Finalidades del tratamiento",
-    body: `Tratamos tus datos personales para: (a) Finalidades primarias: crear y gestionar tu cuenta, procesar depósitos y retiros, resolver mercados y acreditar ganancias, enviarte notificaciones sobre tus predicciones, verificar tu identidad cuando sea necesario, y cumplir obligaciones legales y fiscales; (b) Finalidades secundarias (requieren tu consentimiento): enviarte comunicaciones de marketing sobre nuevas funcionalidades o promociones. Puedes retirar tu consentimiento para finalidades secundarias en cualquier momento escribiendo a contacto@coremarket.mx.`,
+    body: `Tratamos tus datos personales para: (a) Finalidades primarias: crear y gestionar tu cuenta, procesar depósitos y retiros, resolver mercados y acreditar ganancias, enviarte notificaciones sobre tus predicciones, verificar tu identidad cuando sea necesario, y cumplir obligaciones legales y fiscales; (b) Finalidades secundarias (requieren tu consentimiento): enviarte comunicaciones de marketing sobre nuevas funcionalidades o promociones. Puedes retirar tu consentimiento para finalidades secundarias en cualquier momento escribiendo a contacto@lucebase.mx.`,
   },
   {
     title: "4. Procesamiento de pagos — Conekta",
-    body: `Los pagos en Coremarket son procesados por Conekta, S.A. de C.V., empresa mexicana certificada y regulada conforme a la normativa de la Comisión Nacional Bancaria y de Valores (CNBV). Coremarket nunca almacena datos de tarjetas bancarias, números de cuenta ni información financiera sensible. Conekta procesa estos datos bajo sus propias políticas de privacidad y seguridad. Para más información consulta conekta.com.`,
+    body: `Los pagos en Lucebase son procesados por Conekta, S.A. de C.V., empresa mexicana certificada y regulada conforme a la normativa de la Comisión Nacional Bancaria y de Valores (CNBV). Lucebase nunca almacena datos de tarjetas bancarias, números de cuenta ni información financiera sensible. Conekta procesa estos datos bajo sus propias políticas de privacidad y seguridad. Para más información consulta conekta.com.`,
   },
   {
     title: "5. Infraestructura — Supabase",
@@ -23,7 +23,7 @@ const SECTIONS = [
   },
   {
     title: "6. Autenticación con Google",
-    body: `Si eliges iniciar sesión con Google, tu autenticación es gestionada por los servidores de Google LLC conforme a sus propias políticas de privacidad. Coremarket únicamente recibe tu dirección de correo electrónico y nombre de perfil público de Google con tu autorización explícita. No recibimos ni almacenamos tu contraseña de Google. Puedes revocar el acceso de Coremarket a tu cuenta de Google en cualquier momento desde la configuración de tu cuenta de Google.`,
+    body: `Si eliges iniciar sesión con Google, tu autenticación es gestionada por los servidores de Google LLC conforme a sus propias políticas de privacidad. Lucebase únicamente recibe tu dirección de correo electrónico y nombre de perfil público de Google con tu autorización explícita. No recibimos ni almacenamos tu contraseña de Google. Puedes revocar el acceso de Lucebase a tu cuenta de Google en cualquier momento desde la configuración de tu cuenta de Google.`,
   },
   {
     title: "7. Compartir datos con terceros",
@@ -39,7 +39,7 @@ const SECTIONS = [
   },
   {
     title: "10. Derechos ARCO",
-    body: `Conforme a la LFPDPPP, tienes derecho a: (A) Acceso — conocer qué datos personales tenemos sobre ti y cómo los tratamos; (R) Rectificación — solicitar la corrección de datos inexactos o incompletos; (C) Cancelación — solicitar la eliminación de tus datos cuando ya no sean necesarios; (O) Oposición — oponerte al tratamiento de tus datos para finalidades secundarias. Para ejercer cualquiera de estos derechos envía un correo a contacto@coremarket.mx indicando: tu nombre de usuario, el derecho que deseas ejercer y los datos a los que se refiere. Responderemos en un plazo máximo de 20 días hábiles.`,
+    body: `Conforme a la LFPDPPP, tienes derecho a: (A) Acceso — conocer qué datos personales tenemos sobre ti y cómo los tratamos; (R) Rectificación — solicitar la corrección de datos inexactos o incompletos; (C) Cancelación — solicitar la eliminación de tus datos cuando ya no sean necesarios; (O) Oposición — oponerte al tratamiento de tus datos para finalidades secundarias. Para ejercer cualquiera de estos derechos envía un correo a contacto@lucebase.mx indicando: tu nombre de usuario, el derecho que deseas ejercer y los datos a los que se refiere. Responderemos en un plazo máximo de 20 días hábiles.`,
   },
   {
     title: "11. Seguridad de la información",
@@ -47,7 +47,7 @@ const SECTIONS = [
   },
   {
     title: "12. Menores de edad",
-    body: `Coremarket no está dirigida a personas menores de 18 años y no recopilamos conscientemente datos personales de menores. Si tienes conocimiento de que un menor ha creado una cuenta en nuestra Plataforma, notifícanos a contacto@coremarket.mx y eliminaremos la cuenta de inmediato junto con todos los datos asociados.`,
+    body: `Lucebase no está dirigida a personas menores de 18 años y no recopilamos conscientemente datos personales de menores. Si tienes conocimiento de que un menor ha creado una cuenta en nuestra Plataforma, notifícanos a contacto@lucebase.mx y eliminaremos la cuenta de inmediato junto con todos los datos asociados.`,
   },
   {
     title: "13. Transferencias internacionales",
@@ -59,7 +59,7 @@ const SECTIONS = [
   },
   {
     title: "15. Contacto y Oficial de Privacidad",
-    body: `Para cualquier consulta, solicitud ARCO, reporte de incidente de seguridad o queja relacionada con el tratamiento de tus datos personales, contáctanos en: contacto@coremarket.mx. Nuestro tiempo de respuesta es de máximo 5 días hábiles para consultas generales y 20 días hábiles para solicitudes ARCO.`,
+    body: `Para cualquier consulta, solicitud ARCO, reporte de incidente de seguridad o queja relacionada con el tratamiento de tus datos personales, contáctanos en: contacto@lucebase.mx. Nuestro tiempo de respuesta es de máximo 5 días hábiles para consultas generales y 20 días hábiles para solicitudes ARCO.`,
   },
 ];
 
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" style={{ letterSpacing: "-0.025em" }}>
           Política de Privacidad
         </h1>
-        <p className="text-[13px] text-gray-400">Última actualización: abril 2026 · Coremarket</p>
+        <p className="text-[13px] text-gray-400">Última actualización: abril 2026 · Lucebase</p>
       </div>
 
       {/* Intro */}
@@ -100,8 +100,8 @@ export default function PrivacyPage() {
 
       <p className="text-[12px] text-gray-400 text-center">
         ¿Tienes preguntas sobre tu privacidad?{" "}
-        <a href="mailto:contacto@coremarket.mx" className="text-emerald-600 hover:underline font-medium">
-          contacto@coremarket.mx
+        <a href="mailto:contacto@lucebase.mx" className="text-emerald-600 hover:underline font-medium">
+          contacto@lucebase.mx
         </a>
       </p>
     </div>

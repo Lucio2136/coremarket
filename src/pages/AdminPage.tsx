@@ -594,7 +594,7 @@ export default function AdminPage() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    doc.text("Coremarket — Reporte de Tesorería", 14, 18);
+    doc.text("Lucebase — Reporte de Tesorería", 14, 18);
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.text(`Generado: ${now}`, 196, 18, { align: "right" });
@@ -726,10 +726,10 @@ export default function AdminPage() {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
-      doc.text(`Coremarket Admin · Página ${i}/${pageCount}`, 105, 290, { align: "center" });
+      doc.text(`Lucebase Admin · Página ${i}/${pageCount}`, 105, 290, { align: "center" });
     }
 
-    doc.save(`coremarket-tesoreria-${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.save(`lucebase-tesoreria-${new Date().toISOString().slice(0, 10)}.pdf`);
     toast.success("PDF generado correctamente");
   };
 
@@ -783,7 +783,7 @@ export default function AdminPage() {
               <span style={{ color: "#fff", fontSize: 12, fontWeight: 900 }}>Q</span>
             </div>
             <div>
-              <p style={{ color: "#f8fafc", fontSize: 14, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1, margin: 0 }}>Coremarket</p>
+              <p style={{ color: "#f8fafc", fontSize: 14, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1, margin: 0 }}>Lucebase</p>
               <p style={{ color: "#475569", fontSize: 10, letterSpacing: "0.1em", marginTop: 3, margin: "3px 0 0" }}>ADMIN</p>
             </div>
           </div>
@@ -1649,6 +1649,40 @@ export default function AdminPage() {
             <div style={{ maxWidth: 640 }}>
               <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
 
+                {/* ── Plantillas rápidas ── */}
+                <div>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
+                    Plantilla rápida
+                  </label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                    {[
+                      { label: "🔴 En Vivo · Binario",    preset: { market_type: "binary"   as const, is_trending: true,  category: "Deportes",    description: "En Vivo", title: "¿Ganará el equipo local este partido?" } },
+                      { label: "⚡ Esports · Binario",     preset: { market_type: "binary"   as const, is_trending: false, category: "Deportes",    description: "Esports", title: "¿Ganará [Equipo] el Juego 3?" } },
+                      { label: "🗳️ Elecciones · Múltiple", preset: { market_type: "multiple" as const, is_trending: false, category: "Elecciones",  description: "Elecciones", title: "¿Quién ganará las elecciones?" } },
+                      { label: "₿ Precio · Binario",       preset: { market_type: "binary"   as const, is_trending: false, category: "Finanzas",    description: "Bitcoin", title: "¿Bitcoin superará los $X,000 USD esta semana?" } },
+                      { label: "📊 Rango · Scalar",        preset: { market_type: "scalar"   as const, is_trending: false, category: "Finanzas",    description: "Precio",  title: "¿En cuánto cerrará el precio de X?" } },
+                      { label: "🎭 Entretenimiento",        preset: { market_type: "binary"   as const, is_trending: false, category: "Entretenimiento", description: "", title: "" } },
+                    ].map(({ label, preset }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setNewMarket((prev) => ({ ...prev, ...preset }))}
+                        style={{
+                          padding: "6px 12px", borderRadius: 8, border: "1.5px solid #e2e8f0",
+                          background: "#f8fafc", color: "#374151", fontSize: 12, fontWeight: 600,
+                          cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#2563eb"; (e.currentTarget as HTMLButtonElement).style.color = "#1d4ed8"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLButtonElement).style.color = "#374151"; }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ height: 1, background: "#e2e8f0" }} />
+
                 <div>
                   <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
                     Título de la predicción *
@@ -2050,18 +2084,21 @@ export default function AdminPage() {
                   />
                 </div>
 
-                {/* Contexto */}
+                {/* Subcategoría / Contexto */}
                 <div>
                   <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
-                    Contexto (opcional)
+                    Subcategoría / Contexto (opcional)
                   </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={newMarket.description}
                     onChange={(e) => setNewMarket({ ...newMarket, description: e.target.value })}
-                    placeholder="Explica brevemente de qué trata este mercado y por qué es relevante..."
+                    placeholder="Subcategoría corta (ej: Bitcoin, LoL, Esports, Mensual) o contexto del mercado..."
                     style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }}
                   />
+                  <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 5 }}>
+                    Si es ≤ 25 caracteres se muestra como etiqueta en el card (ej: <strong style={{ color: "#374151" }}>Bitcoin</strong>, <strong style={{ color: "#374151" }}>LoL</strong>). Si es más largo se usa solo como contexto interno.
+                  </p>
                 </div>
 
                 {/* Normas */}
@@ -2078,15 +2115,19 @@ export default function AdminPage() {
                   />
                 </div>
 
-                {/* Trending toggle */}
+                {/* En Vivo toggle */}
                 <div onClick={() => setNewMarket({ ...newMarket, is_trending: !newMarket.is_trending })} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                  <div style={{ width: 40, height: 22, borderRadius: 11, position: "relative", background: newMarket.is_trending ? "#f59e0b" : "#e2e8f0", transition: "background 0.2s", flexShrink: 0 }}>
+                  <div style={{ width: 40, height: 22, borderRadius: 11, position: "relative", background: newMarket.is_trending ? "#EF4444" : "#e2e8f0", transition: "background 0.2s", flexShrink: 0 }}>
                     <div style={{ position: "absolute", top: 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s", left: newMarket.is_trending ? 21 : 3 }} />
                   </div>
-                  <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#374151" }}>
-                    <Flame size={13} color={newMarket.is_trending ? "#f59e0b" : "#cbd5e1"} />
-                    Marcar como tendencia
-                  </span>
+                  <div>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#374151", fontWeight: 600 }}>
+                      {newMarket.is_trending
+                        ? <><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#EF4444", display: "inline-block" }} />🔴 En Vivo</>
+                        : <><Flame size={13} color="#cbd5e1" />Marcar como En Vivo</>}
+                    </span>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "2px 0 0" }}>Muestra badge LIVE rojo pulsante en el card</p>
+                  </div>
                 </div>
 
                 <div style={{ height: 1, background: "#e2e8f0" }} />

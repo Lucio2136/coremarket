@@ -21,8 +21,8 @@ const CATEGORIES = [
     desc: "Cuenta nueva, depósitos iniciales y primeros pasos.",
     articles: [
       {
-        q: "¿Qué es Coremarket?",
-        a: "Coremarket es una plataforma de mercados de predicción en español. Apuestas sobre si ocurrirá o no un evento real — política, deportes, entretenimiento — usando pesos mexicanos. Si aciertas, cobras una parte del pozo total.",
+        q: "¿Qué es Lucebase?",
+        a: "Lucebase es una plataforma de mercados de predicción en español. Apuestas sobre si ocurrirá o no un evento real — política, deportes, entretenimiento — usando pesos mexicanos. Si aciertas, cobras una parte del pozo total.",
       },
       {
         q: "¿Cómo creo una cuenta?",
@@ -30,7 +30,7 @@ const CATEGORIES = [
       },
       {
         q: "¿Es gratis registrarse?",
-        a: "Sí, crear una cuenta en Coremarket es completamente gratuito. Solo necesitas una dirección de correo electrónico válida.",
+        a: "Sí, crear una cuenta en Lucebase es completamente gratuito. Solo necesitas una dirección de correo electrónico válida.",
       },
       {
         q: "¿Cómo funciona el programa de referidos?",
@@ -61,7 +61,7 @@ const CATEGORIES = [
       },
       {
         q: "¿Quién resuelve los mercados?",
-        a: "El equipo de Coremarket verifica el resultado usando fuentes públicas verificables (noticias, estadísticas oficiales, declaraciones). Una vez confirmado, el sistema acredita los pagos automáticamente.",
+        a: "El equipo de Lucebase verifica el resultado usando fuentes públicas verificables (noticias, estadísticas oficiales, declaraciones). Una vez confirmado, el sistema acredita los pagos automáticamente.",
       },
       {
         q: "¿Puedo vender mi posición antes de que cierre el mercado?",
@@ -115,11 +115,11 @@ const CATEGORIES = [
       },
       {
         q: "¿Hay comisión?",
-        a: "Coremarket retiene un 3% del pago bruto como fee de plataforma. El resto se acredita íntegro al ganador. No hay comisiones por depósito ni retiro.",
+        a: "Lucebase retiene un 3% del pago bruto como fee de plataforma. El resto se acredita íntegro al ganador. No hay comisiones por depósito ni retiro.",
       },
       {
         q: "¿Es seguro ingresar mi tarjeta?",
-        a: "Sí. Todos los pagos se procesan a través de Stripe, uno de los procesadores de pago más seguros del mundo. Coremarket nunca almacena los datos de tu tarjeta.",
+        a: "Sí. Todos los pagos se procesan a través de Stripe, uno de los procesadores de pago más seguros del mundo. Lucebase nunca almacena los datos de tu tarjeta.",
       },
     ],
   },
@@ -142,7 +142,7 @@ const CATEGORIES = [
       },
       {
         q: "¿Qué es el Leaderboard?",
-        a: "El Leaderboard es el ranking de los mejores predictores de Coremarket. Se actualiza en tiempo real y muestra ganancias totales, racha activa y estadísticas de acierto.",
+        a: "El Leaderboard es el ranking de los mejores predictores de Lucebase. Se actualiza en tiempo real y muestra ganancias totales, racha activa y estadísticas de acierto.",
       },
       {
         q: "¿Cómo cierro sesión?",
@@ -160,16 +160,16 @@ const CATEGORIES = [
     desc: "Privacidad, datos personales y uso responsable.",
     articles: [
       {
-        q: "¿Cómo protege Coremarket mis datos?",
+        q: "¿Cómo protege Lucebase mis datos?",
         a: "Usamos Supabase con Row Level Security (RLS) para que solo tú puedas acceder a tus datos. Las contraseñas se encriptan con bcrypt y los pagos se procesan a través de Stripe sin que almacenemos datos de tarjeta.",
       },
       {
-        q: "¿Coremarket comparte mis datos con terceros?",
+        q: "¿Lucebase comparte mis datos con terceros?",
         a: "No vendemos ni compartimos datos personales. Solo usamos proveedores de confianza (Stripe para pagos, Supabase para base de datos) que tienen sus propias políticas de privacidad.",
       },
       {
         q: "¿Qué pasa si detecto actividad sospechosa en mi cuenta?",
-        a: "Contáctanos de inmediato a contacto@coremarket.mx. Bloquearemos tu cuenta preventivamente y revisaremos la actividad. Te recomendamos cambiar tu contraseña desde otro dispositivo.",
+        a: "Contáctanos de inmediato a contacto@lucebase.mx. Bloquearemos tu cuenta preventivamente y revisaremos la actividad. Te recomendamos cambiar tu contraseña desde otro dispositivo.",
       },
     ],
   },
@@ -414,7 +414,7 @@ export default function HelpPage() {
           <p className="text-[12px] text-gray-400 leading-relaxed">Escríbenos directamente y te respondemos en menos de 24 horas.</p>
         </div>
         <a
-          href="mailto:contacto@coremarket.mx"
+          href="mailto:contacto@lucebase.mx"
           className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-[13px] font-semibold rounded-xl transition-colors"
         >
           Contactar

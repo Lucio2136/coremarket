@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const KEY = "quotr_saved_markets";
+const KEY = "lucebase_saved_markets";
 
 function readSaved(): Set<string> {
   try {

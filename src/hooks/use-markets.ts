@@ -6,9 +6,11 @@ export const useMarkets = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Evita el flash de skeleton cuando ya hay datos en pantalla (ej. al hacer refetch manual)
+  const hasDataRef = useRef(false);
 
   const fetchMarkets = useCallback(() => {
-    setLoading(true);
+    if (!hasDataRef.current) setLoading(true);
     const headers = {
       apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -31,6 +33,7 @@ export const useMarkets = () => {
           });
         }
         setMarkets(marketsData.map((m: any) => ({ ...m, market_options: opts[m.id] ?? [] })));
+        hasDataRef.current = true;
         setError(null);
       })
       .catch(() => setError("Error de conexion"))

@@ -5,6 +5,7 @@ import {
   TrendingUp, Flame, Sparkles, Search, ChevronDown,
   CheckCircle, XCircle, ArrowUpCircle, Trophy, Clock, HelpCircle, Bookmark, LineChart,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSavedMarkets } from "@/hooks/use-saved-markets";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -92,7 +93,7 @@ export function AppHeader() {
               <span className="text-white dark:text-gray-900 text-xs font-black">C</span>
             </div>
             <span className="font-bold text-[17px] text-gray-900 dark:text-gray-100 tracking-tight hidden sm:inline">
-              Coremarket
+              Lucebase
             </span>
           </Link>
 
@@ -135,20 +136,18 @@ export function AppHeader() {
                 </div>
 
                 {/* Retirar */}
-                <button
+                <Button
+                  variant="brand-ghost"
                   onClick={() => setWithdrawOpen(true)}
-                  className="px-3 py-1.5 bg-transparent hover:bg-slate-100 dark:hover:bg-gray-800 active:bg-slate-200 text-gray-500 dark:text-gray-400 text-sm font-medium rounded-full border border-gray-200 dark:border-gray-700 transition-colors hidden sm:inline-flex items-center"
+                  className="hidden sm:inline-flex px-3 py-1.5 text-[12px]"
                 >
                   Retirar
-                </button>
+                </Button>
 
                 {/* Depósito */}
-                <button
-                  onClick={() => setDepositOpen(true)}
-                  className="px-4 py-1.5 bg-gray-900 hover:bg-gray-800 active:bg-black dark:bg-white dark:hover:bg-gray-100 dark:active:bg-gray-200 text-white dark:text-gray-900 text-sm font-semibold rounded-full transition-all duration-150 active:scale-[0.97]"
-                >
+                <Button variant="dark" onClick={() => setDepositOpen(true)} className="px-3 py-1.5 text-[12px]">
                   Depósito
-                </button>
+                </Button>
 
                 {/* Referidos */}
                 <button
@@ -284,13 +283,10 @@ export function AppHeader() {
                 </div>
               </>
             ) : (
-              <button
-                onClick={() => setAuthOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-full transition-colors"
-              >
-                <LogIn size={14} />
+              <Button variant="primary" onClick={() => setAuthOpen(true)}>
+                <LogIn size={14} strokeWidth={2} />
                 Entrar
-              </button>
+              </Button>
             )}
           </div>
         </div>

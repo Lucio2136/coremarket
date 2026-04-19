@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-const ONBOARDING_KEY = "quotr_onboarded";
+const ONBOARDING_KEY = "lucebase_onboarded";
 
 export function AppLayout() {
   const { isAuthenticated, loading, user } = useAuth();

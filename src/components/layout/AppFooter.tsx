@@ -18,7 +18,7 @@ const COL_APOYO = [
   { label: "Centro de ayuda", to: "/help" },
   { label: "¿Cómo funciona?", to: "/faq" },
   { label: "Leaderboard",     to: "/leaderboard" },
-  { label: "Contáctanos",     href: "mailto:contacto@coremarket.mx" },
+  { label: "Contáctanos",     href: "mailto:contacto@lucebase.mx" },
 ];
 
 const COL_PLATAFORMA = [
@@ -49,7 +49,7 @@ export function AppFooter() {
                 <span className="text-white dark:text-gray-900 text-xs font-black">C</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                Coremarket
+                Lucebase
               </span>
             </Link>
             <p className="text-[13px] text-gray-400 dark:text-gray-500 mb-6">
@@ -110,10 +110,10 @@ export function AppFooter() {
             </ul>
           </div>
 
-          {/* ── Columna: Coremarket ── */}
+          {/* ── Columna: Lucebase ── */}
           <div className="min-w-[160px]">
             <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-4">
-              Coremarket
+              Lucebase
             </p>
             <ul className="space-y-3">
               {COL_PLATAFORMA.map((item) => (
@@ -138,7 +138,7 @@ export function AppFooter() {
           {/* Íconos sociales */}
           <div className="flex items-center gap-3">
             <a
-              href="mailto:contacto@coremarket.mx"
+              href="mailto:contacto@lucebase.mx"
               className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
               title="Email"
             >
@@ -162,7 +162,7 @@ export function AppFooter() {
 
           {/* Copyright + links legales */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11.5px] text-gray-400 dark:text-gray-500">
-            <span>Coremarket © {new Date().getFullYear()}</span>
+            <span>Lucebase © {new Date().getFullYear()}</span>
             <span className="hidden sm:inline text-gray-200 dark:text-gray-700">·</span>
             <Link to="/privacy" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
               Privacidad
@@ -181,7 +181,7 @@ export function AppFooter() {
         {/* Disclaimer */}
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 pb-5">
           <p className="text-[10.5px] text-gray-300 dark:text-gray-600 leading-relaxed">
-            Coremarket es una plataforma de mercados de predicción con fines de entretenimiento. Los resultados dependen de eventos reales verificables. El trading implica un riesgo de pérdida. Participa de forma responsable.
+            Lucebase es una plataforma de mercados de predicción con fines de entretenimiento. Los resultados dependen de eventos reales verificables. El trading implica un riesgo de pérdida. Participa de forma responsable.
           </p>
         </div>
       </div>

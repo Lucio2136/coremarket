@@ -537,7 +537,7 @@ function MarketComments({ marketId }: { marketId: string }) {
             <button
               onClick={() => {
                 // dispara AuthModal — el padre lo maneja
-                document.dispatchEvent(new CustomEvent("quotr:open-auth"));
+                document.dispatchEvent(new CustomEvent("lucebase:open-auth"));
               }}
               className="font-semibold text-blue-600 hover:underline"
             >
@@ -634,6 +634,46 @@ function MarketComments({ marketId }: { marketId: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── Botón Sí/No (mismo estilo que MarketCard) ───────────────────────────────
+
+function SidePillBtn({
+  isYes, selected, disabled, onClick, label, pct,
+}: { isYes: boolean; selected: boolean; disabled: boolean; onClick: () => void; label: string; pct: number }) {
+  const [hover, setHover] = useState(false);
+  const solid = selected || hover;
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      onMouseEnter={() => !disabled && setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        flex: 1, height: 46, borderRadius: 12, border: 0,
+        fontWeight: 700, fontSize: 15, cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.6 : 1,
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        fontFamily: "inherit", position: "relative", overflow: "hidden",
+        transition: "background .15s, box-shadow .15s, transform .12s",
+        background: solid ? (isYes ? "#10B981" : "#F43F5E") : (isYes ? "#ECFDF5" : "#FFF1F2"),
+        color: solid ? "#fff" : (isYes ? "#047857" : "#BE123C"),
+        boxShadow: solid
+          ? `0 1px 0 rgba(255,255,255,.25) inset, 0 8px 18px -6px ${isYes ? "rgba(16,185,129,.55)" : "rgba(244,63,94,.55)"}, 0 2px 4px rgba(15,23,42,.08)`
+          : "none",
+        transform: hover && !disabled ? "translateY(-1px)" : "translateY(0)",
+      }}
+    >
+      {solid && (
+        <span style={{
+          position: "absolute", inset: 0, borderRadius: "inherit", pointerEvents: "none",
+          background: "linear-gradient(180deg,rgba(255,255,255,.22) 0%,transparent 45%)",
+        }} />
+      )}
+      <span style={{ position: "relative", zIndex: 1 }}>{label}</span>
+      <span style={{ position: "relative", zIndex: 1, fontSize: 13, fontWeight: 600, opacity: solid ? 0.85 : 1 }}>{pct}%</span>
+    </button>
   );
 }
 
@@ -848,33 +888,23 @@ function BetPanel({ market, initialSide, initialOptionId, onAuthRequired }: BetP
             </div>
           )
         ) : (
-          <div className="flex gap-2">
-            <button
-              disabled={isClosed}
-              onClick={() => setSide("yes")}
-              className={[
-                "flex-1 py-2.5 rounded-lg text-[13px] font-bold transition-all active:scale-[0.97]",
-                side === "yes"
-                  ? "bg-emerald-500 text-white"
-                  : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100",
-                "disabled:opacity-50 disabled:pointer-events-none",
-              ].join(" ")}
-            >
-              Sí &nbsp;<span>{market.yes_percent}%</span>
-            </button>
-            <button
-              disabled={isClosed}
-              onClick={() => setSide("no")}
-              className={[
-                "flex-1 py-2.5 rounded-lg text-[13px] font-bold transition-all active:scale-[0.97]",
-                side === "no"
-                  ? "bg-rose-500 text-white"
-                  : "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100",
-                "disabled:opacity-50 disabled:pointer-events-none",
-              ].join(" ")}
-            >
-              No &nbsp;<span>{noP}%</span>
-            </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            {(["yes", "no"] as const).map((s) => {
+              const isYes     = s === "yes";
+              const selected  = side === s;
+              const pctLabel  = isYes ? market.yes_percent : noP;
+              return (
+                <SidePillBtn
+                  key={s}
+                  isYes={isYes}
+                  selected={selected}
+                  disabled={isClosed}
+                  onClick={() => setSide(s)}
+                  label={isYes ? "Sí" : "No"}
+                  pct={pctLabel}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -929,23 +959,23 @@ function BetPanel({ market, initialSide, initialOptionId, onAuthRequired }: BetP
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 flex flex-col gap-2">
-                {isMultiple && selectedOption && (
-                  <div className="flex justify-between text-[12px]">
-                    <span className="text-gray-500 dark:text-gray-400">Opción</span>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[140px] text-right">{selectedOption.label}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-[12px]">
-                  <span className="text-gray-500 dark:text-gray-400">Cuota</span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">{odds.toFixed(2)}x</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 2px" }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#6B7280", display: "flex", alignItems: "center", gap: 5 }}>
+                    Para ganar
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
+                  </p>
+                  <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9CA3AF" }}>
+                    Cuota {odds.toFixed(2)}x · comisión 3%
+                  </p>
                 </div>
-                <div className="flex justify-between text-[12px]">
-                  <span className="text-gray-500 dark:text-gray-400">Pago potencial</span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">
-                    ${payout.toFixed(2)} MXN
-                  </span>
-                </div>
+                <p style={{
+                  margin: 0, fontSize: 30, fontWeight: 900,
+                  color: "#059669", fontVariantNumeric: "tabular-nums",
+                  letterSpacing: "-.02em", lineHeight: 1,
+                }}>
+                  ${payout.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
             </motion.div>
           )}
@@ -1022,8 +1052,8 @@ export default function MarketPage() {
   // Permite que MarketComments abra el modal de auth vía evento custom
   useEffect(() => {
     const handler = () => setAuthOpen(true);
-    document.addEventListener("quotr:open-auth", handler);
-    return () => document.removeEventListener("quotr:open-auth", handler);
+    document.addEventListener("lucebase:open-auth", handler);
+    return () => document.removeEventListener("lucebase:open-auth", handler);
   }, []);
 
   const initialSide     = searchParams.get("side") as "yes" | "no" | null;

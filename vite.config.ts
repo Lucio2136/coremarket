@@ -22,8 +22,8 @@ export default defineConfig(({ mode }) => ({
       filename: "sw.ts",
       includeAssets: ["pwa-icon.svg"],
       manifest: {
-        name: "Coremarket — Mercados de Predicción",
-        short_name: "Coremarket",
+        name: "Lucebase — Mercados de Predicción",
+        short_name: "Lucebase",
         description: "Predice lo que figuras públicas dirán o harán. Mercados de predicción en tiempo real con pesos mexicanos.",
         theme_color: "#111827",
         background_color: "#f9fafb",
@@ -62,11 +62,13 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          "vendor-react":  ["react", "react-dom", "react/jsx-runtime"],
-          "vendor-router": ["react-router-dom"],
-          "vendor-query":  ["@tanstack/react-query"],
-          "vendor-ui":     ["@radix-ui/react-dialog", "@radix-ui/react-tooltip", "@radix-ui/react-select"],
+          "vendor-react":    ["react", "react-dom", "react/jsx-runtime"],
+          "vendor-router":   ["react-router-dom"],
+          "vendor-query":    ["@tanstack/react-query"],
+          "vendor-ui":       ["@radix-ui/react-dialog", "@radix-ui/react-tooltip", "@radix-ui/react-select"],
           "vendor-supabase": ["@supabase/supabase-js"],
+          "vendor-motion":   ["framer-motion"],
+          "vendor-charts":   ["recharts"],
         },
       },
     },

@@ -41,7 +41,7 @@ async function shareCard(bet: any) {
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 28px sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("Coremarket", 118, 72);
+  ctx.fillText("Lucebase", 118, 72);
 
   ctx.fillStyle = "rgba(255,255,255,0.3)";
   ctx.font = "18px sans-serif";
@@ -111,23 +111,23 @@ async function shareCard(bet: any) {
   ctx.fillRect(0, 534, W, 1);
   ctx.fillStyle = "rgba(255,255,255,0.4)";
   ctx.font = "16px sans-serif"; ctx.textAlign = "right";
-  ctx.fillText("coremarket.mx", W - 52, 553);
+  ctx.fillText("lucebase.mx", W - 52, 553);
 
   // Compartir
   const blob = await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), "image/png"));
-  const file = new File([blob], "prediccion-coremarket.png", { type: "image/png" });
+  const file = new File([blob], "prediccion-lucebase.png", { type: "image/png" });
   const marketTitle = bet.markets?.title ?? "Mercado";
   const text = isWon
-    ? `¡Acerté! Gané $${(payout - bet.amount).toFixed(0)} MXN en Coremarket prediciendo "${marketTitle}" 🏆`
-    : `Aposté ${isYes ? "SÍ" : "NO"} en "${marketTitle}" en Coremarket 🎯`;
+    ? `¡Acerté! Gané $${(payout - bet.amount).toFixed(0)} MXN en Lucebase prediciendo "${marketTitle}" 🏆`
+    : `Aposté ${isYes ? "SÍ" : "NO"} en "${marketTitle}" en Lucebase 🎯`;
 
   if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ title: "Mi predicción en Coremarket", text, files: [file] });
+    await navigator.share({ title: "Mi predicción en Lucebase", text, files: [file] });
   } else if (navigator.share) {
-    await navigator.share({ title: "Mi predicción", text, url: "https://coremarket.mx" });
+    await navigator.share({ title: "Mi predicción", text, url: "https://lucebase.mx" });
   } else {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "prediccion-coremarket.png"; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = "prediccion-lucebase.png"; a.click();
     URL.revokeObjectURL(url);
   }
 }

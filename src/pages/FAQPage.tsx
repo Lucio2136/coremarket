@@ -43,16 +43,16 @@ const SECTIONS = [
     bg: "bg-violet-50 dark:bg-violet-950/30",
     items: [
       {
-        q: "¿Qué es Coremarket?",
-        a: "Coremarket es una plataforma de mercados de predicción en español con pesos mexicanos. Apuestas sobre si ocurrirá o no un evento real — política, deportes, entretenimiento — y si aciertas, cobras una parte del pozo total.",
+        q: "¿Qué es Lucebase?",
+        a: "Lucebase es una plataforma de mercados de predicción en español con pesos mexicanos. Apuestas sobre si ocurrirá o no un evento real — política, deportes, entretenimiento — y si aciertas, cobras una parte del pozo total.",
       },
       {
         q: "¿Cómo se determina el precio (50%, 65%...)?",
         a: "El precio lo fija el mercado automáticamente. Cuando más gente compra «Sí», ese precio sube y el de «No» baja. Es la sabiduría colectiva en tiempo real — igual que una bolsa de valores, pero de predicciones. Nadie fija el precio manualmente.",
       },
       {
-        q: "¿Es legal apostar en Coremarket?",
-        a: "Coremarket opera como plataforma de entretenimiento de predicciones. Los mercados se basan en eventos verificables públicamente. Te recomendamos revisar la regulación de tu estado o región.",
+        q: "¿Es legal apostar en Lucebase?",
+        a: "Lucebase opera como plataforma de entretenimiento de predicciones. Los mercados se basan en eventos verificables públicamente. Te recomendamos revisar la regulación de tu estado o región.",
       },
       {
         q: "¿Qué tipos de mercado existen?",
@@ -81,7 +81,7 @@ const SECTIONS = [
       },
       {
         q: "¿Quién resuelve los mercados?",
-        a: "El equipo de Coremarket verifica el resultado usando fuentes públicas verificables (noticias, estadísticas oficiales, declaraciones). Una vez confirmado, el sistema acredita los pagos automáticamente a los ganadores.",
+        a: "El equipo de Lucebase verifica el resultado usando fuentes públicas verificables (noticias, estadísticas oficiales, declaraciones). Una vez confirmado, el sistema acredita los pagos automáticamente a los ganadores.",
       },
       {
         q: "¿Puedo tener posiciones en ambos lados (Sí y No)?",
@@ -110,11 +110,11 @@ const SECTIONS = [
       },
       {
         q: "¿Hay comisión?",
-        a: "Coremarket retiene un 3% del pago bruto como fee de plataforma. El resto se acredita íntegro al ganador. No hay comisiones por depósito ni por retiro.",
+        a: "Lucebase retiene un 3% del pago bruto como fee de plataforma. El resto se acredita íntegro al ganador. No hay comisiones por depósito ni por retiro.",
       },
       {
         q: "¿Es seguro ingresar mi tarjeta?",
-        a: "Sí. Todos los pagos se procesan a través de Stripe, uno de los procesadores de pago más seguros del mundo. Coremarket nunca almacena los datos de tu tarjeta.",
+        a: "Sí. Todos los pagos se procesan a través de Stripe, uno de los procesadores de pago más seguros del mundo. Lucebase nunca almacena los datos de tu tarjeta.",
       },
     ],
   },
@@ -126,7 +126,7 @@ const SECTIONS = [
     bg: "bg-amber-50 dark:bg-amber-950/30",
     items: [
       {
-        q: "¿Cómo protege Coremarket mis datos?",
+        q: "¿Cómo protege Lucebase mis datos?",
         a: "Usamos Row Level Security (RLS) de Supabase para que solo tú puedas acceder a tus datos. Las contraseñas se encriptan y los pagos se procesan a través de Stripe sin que almacenemos datos de tarjeta.",
       },
       {
@@ -135,7 +135,7 @@ const SECTIONS = [
       },
       {
         q: "¿Qué pasa si detecto actividad sospechosa en mi cuenta?",
-        a: "Contáctanos de inmediato a contacto@coremarket.mx. Bloquearemos tu cuenta preventivamente y revisaremos la actividad. Te recomendamos cambiar tu contraseña desde otro dispositivo.",
+        a: "Contáctanos de inmediato a contacto@lucebase.mx. Bloquearemos tu cuenta preventivamente y revisaremos la actividad. Te recomendamos cambiar tu contraseña desde otro dispositivo.",
       },
     ],
   },
@@ -202,7 +202,7 @@ export default function FAQPage() {
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Preguntas frecuentes</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100" style={{ letterSpacing: "-0.025em" }}>
-          ¿Cómo funciona Coremarket?
+          ¿Cómo funciona Lucebase?
         </h1>
         <p className="text-[13px] text-gray-400">Mercados de predicción en pesos MXN · Todo lo que necesitas saber.</p>
       </div>

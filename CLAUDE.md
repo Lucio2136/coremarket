@@ -14,7 +14,7 @@ npm run test:watch   # Vitest en modo watch
 
 ## Proyecto
 
-**QUOTR** — Plataforma de apuestas de predicción estilo Polymarket, en español/mexicano con pesos MXN. Los usuarios apuestan sobre lo que dirán o harán personajes públicos.
+**LUCEBASE** — Plataforma de apuestas de predicción estilo Polymarket, en español/mexicano con pesos MXN. Los usuarios apuestan sobre lo que dirán o harán personajes públicos.
 
 - Supabase Project ID: `odtqsptglayxtwqvxxyr`
 - Admin email: `outfisin@gmail.com` (gateado en AuthContext)

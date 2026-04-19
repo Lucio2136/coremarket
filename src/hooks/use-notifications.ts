@@ -17,7 +17,7 @@ export interface BetNotification {
 
 function getReadIds(userId: string): Set<string> {
   try {
-    const raw = localStorage.getItem(`quotr-notif-read-${userId}`);
+    const raw = localStorage.getItem(`lucebase-notif-read-${userId}`);
     return new Set(raw ? JSON.parse(raw) : []);
   } catch {
     return new Set();
@@ -25,7 +25,7 @@ function getReadIds(userId: string): Set<string> {
 }
 
 function saveReadIds(userId: string, ids: Set<string>) {
-  localStorage.setItem(`quotr-notif-read-${userId}`, JSON.stringify([...ids]));
+  localStorage.setItem(`lucebase-notif-read-${userId}`, JSON.stringify([...ids]));
 }
 
 export function useNotifications() {

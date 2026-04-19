@@ -13,8 +13,13 @@ export default {
     },
     extend: {
       fontFamily: {
+        sans:    ["Inter", "system-ui", "sans-serif"],
         heading: ["Syne", "sans-serif"],
-        body: ["DM Sans", "sans-serif"],
+        body:    ["DM Sans", "sans-serif"],
+      },
+      fontSize: {
+        micro:   "9.5px",
+        caption: "11px",
       },
       colors: {
         border: "hsl(var(--border))",
@@ -39,8 +44,10 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT: "#2563EB",
           foreground: "hsl(var(--accent-foreground))",
+          600: "#1D4ED8",
+          50:  "#EFF6FF",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -61,19 +68,58 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         neon: {
-          gold: "hsl(var(--neon-gold))",
+          gold:   "hsl(var(--neon-gold))",
           purple: "hsl(var(--neon-purple))",
-          green: "hsl(var(--neon-green))",
-          red: "hsl(var(--neon-red))",
+          green:  "hsl(var(--neon-green))",
+          red:    "hsl(var(--neon-red))",
         },
         surface: {
           elevated: "hsl(var(--surface-elevated))",
         },
+        // ── Design system brand tokens ──────────────────────────────────
+        ink: {
+          DEFAULT: "#0D1117",
+          soft:    "#1F2937",
+        },
+        paper: {
+          DEFAULT: "#FFFFFF",
+          dim:     "#FAFAFA",
+        },
+        yes: {
+          DEFAULT: "#10B981",
+          700:     "#047857",
+          50:      "#ECFDF5",
+        },
+        no: {
+          DEFAULT: "#F43F5E",
+          700:     "#BE123C",
+          50:      "#FFF1F2",
+        },
+        cat: {
+          politica:        "#3B82F6",
+          deportes:        "#10B981",
+          entretenimiento: "#8B5CF6",
+          finanzas:        "#F59E0B",
+          tech:            "#06B6D4",
+          musica:          "#F43F5E",
+          negocios:        "#6366F1",
+          elecciones:      "#EF4444",
+          redes:           "#0EA5E9",
+          cultura:         "#F97316",
+        },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xs:   "6px",
+        sm:   "8px",
+        md:   "12px",
+        lg:   "var(--radius)",
+        xl:   "20px",
+        "2xl":"24px",
+      },
+      boxShadow: {
+        card:        "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+        "card-hover":"0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+        modal:       "0 24px 60px rgba(0,0,0,0.18)",
       },
       keyframes: {
         "accordion-down": {

@@ -13,7 +13,7 @@ self.addEventListener("push", (event: PushEvent) => {
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: "Coremarket", body: event.data.text() };
+    payload = { title: "Lucebase", body: event.data.text() };
   }
 
   event.waitUntil(
@@ -21,7 +21,7 @@ self.addEventListener("push", (event: PushEvent) => {
       body:    payload.body,
       icon:    "/pwa-icon.svg",
       badge:   "/pwa-icon.svg",
-      tag:     "coremarket-push",
+      tag:     "lucebase-push",
       data:    { url: payload.url ?? "/" },
       vibrate: [200, 100, 200],
     })

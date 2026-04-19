@@ -59,7 +59,7 @@ export function AppSidebar() {
               <span className="text-white dark:text-gray-900 text-xs font-black">Q</span>
             </div>
             <span className="text-[17px] font-bold text-gray-900 dark:text-gray-100 tracking-tight group-data-[collapsible=icon]:hidden">
-              Coremarket
+              Lucebase
             </span>
           </NavLink>
         </SidebarHeader>
@@ -167,7 +167,7 @@ export function AppSidebar() {
               )}
             </div>
             <p className="text-[10px] text-sidebar-foreground/40 mt-1 font-medium">
-              Coremarket · Beta
+              Lucebase · Beta
             </p>
           </div>
 
