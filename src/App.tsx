@@ -20,6 +20,7 @@ const PublicProfilePage  = lazy(() => import("@/pages/PublicProfilePage"));
 const NotFound           = lazy(() => import("@/pages/NotFound"));
 const AdminPage       = lazy(() => import("@/pages/AdminPage"));
 const StatsPage       = lazy(() => import("@/pages/StatsPage"));
+const NoticiasPage    = lazy(() => import("@/pages/NoticiasPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,7 +61,8 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/user/:username" element={<PublicProfilePage />} />
-                <Route path="/stats" element={<StatsPage />} />
+                <Route path="/stats"     element={<StatsPage />} />
+                <Route path="/noticias" element={<NoticiasPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
               <Route path="/admin" element={<AdminPage />} />

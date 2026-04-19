@@ -1,12 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, BarChart2, Trophy, User } from "lucide-react";
+import { Home, BarChart2, Trophy, User, Newspaper } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/modals/AuthModal";
 
 const TABS = [
   { to: "/",            label: "Inicio",       icon: Home,      requiresAuth: false },
-  { to: "/my-bets",     label: "Predicciones", icon: BarChart2, requiresAuth: true  },
+  { to: "/my-bets",     label: "Apuestas",     icon: BarChart2, requiresAuth: true  },
+  { to: "/noticias",    label: "Noticias",     icon: Newspaper, requiresAuth: false },
   { to: "/leaderboard", label: "Ranking",      icon: Trophy,    requiresAuth: false },
   { to: "/profile",     label: "Perfil",       icon: User,      requiresAuth: true  },
 ];
