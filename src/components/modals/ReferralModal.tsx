@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
-import { Copy, Check, Users, Gift, TrendingUp } from "lucide-react";
+import { Copy, Check, Users, Gift, TrendingUp, X } from "lucide-react";
 
 interface ReferralModalProps {
   open: boolean;
@@ -27,55 +26,65 @@ export function ReferralModal({ open, onOpenChange }: ReferralModalProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[420px] bg-white max-h-[90vh] overflow-y-auto overflow-x-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Gift size={20} className="text-violet-500" />
-            Programa de referidos
-          </DialogTitle>
-        </DialogHeader>
+    <div
+      style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={() => onOpenChange(false)}
+    >
+      <div
+        style={{ backgroundColor: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", padding: "24px 20px 32px", boxSizing: "border-box" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Gift size={20} color="#8b5cf6" />
+            <span style={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>Programa de referidos</span>
+          </div>
+          <button onClick={() => onOpenChange(false)} style={{ padding: 4, color: "#9ca3af" }}>
+            <X size={20} />
+          </button>
+        </div>
 
         {/* Descripción */}
-        <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 text-sm text-violet-800 leading-relaxed">
-          Invita a tus amigos a Coremarket. Cuando se registren con tu código,
-          <span className="font-bold"> ambos reciben $50 MXN</span> de bono directo a su saldo.
+        <div style={{ backgroundColor: "#f5f3ff", border: "1px solid #ede9fe", borderRadius: 12, padding: "12px 16px", fontSize: 13, color: "#5b21b6", lineHeight: 1.6, marginBottom: 16 }}>
+          Invita a tus amigos a Coremarket. Cuando se registren con tu código,{" "}
+          <strong>ambos reciben $50 MXN</strong> de bono directo a su saldo.
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <Users size={14} className="text-gray-400" />
-              <p className="text-[11px] text-gray-400 uppercase tracking-wide font-semibold">Referidos</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+          <div style={{ backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, textAlign: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+              <Users size={13} color="#9ca3af" />
+              <span style={{ fontSize: 10, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Referidos</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 tabular-nums">
-              {profile?.referral_count ?? 0}
-            </p>
+            <p style={{ fontSize: 24, fontWeight: 700, color: "#111827", margin: 0 }}>{profile?.referral_count ?? 0}</p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <TrendingUp size={14} className="text-emerald-500" />
-              <p className="text-[11px] text-emerald-600 uppercase tracking-wide font-semibold">Ganado</p>
+          <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: 12, textAlign: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 4 }}>
+              <TrendingUp size={13} color="#10b981" />
+              <span style={{ fontSize: 10, color: "#059669", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Ganado</span>
             </div>
-            <p className="text-2xl font-bold text-emerald-600 tabular-nums">
+            <p style={{ fontSize: 22, fontWeight: 700, color: "#059669", margin: 0 }}>
               ${(profile?.referral_earnings_mxn ?? 0).toLocaleString("es-MX", { minimumFractionDigits: 0 })}
-              <span className="text-sm font-medium ml-1">MXN</span>
+              <span style={{ fontSize: 13, fontWeight: 500, marginLeft: 4 }}>MXN</span>
             </p>
           </div>
         </div>
 
         {/* Código */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tu código</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-100 rounded-xl px-4 py-3 font-mono text-xl font-bold text-gray-900 tracking-[0.25em] text-center select-all">
+        <div style={{ marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Tu código</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ flex: 1, backgroundColor: "#f3f4f6", borderRadius: 12, padding: "12px 16px", fontFamily: "monospace", fontSize: 20, fontWeight: 700, color: "#111827", letterSpacing: "0.2em", textAlign: "center" }}>
               {code}
             </div>
             <button
               onClick={copyCode}
-              className="shrink-0 p-3 bg-gray-900 hover:bg-gray-700 active:bg-gray-800 text-white rounded-xl transition-colors"
+              style={{ flexShrink: 0, padding: 12, backgroundColor: "#111827", color: "#fff", borderRadius: 12, border: "none", cursor: "pointer" }}
             >
               {copied ? <Check size={18} /> : <Copy size={18} />}
             </button>
@@ -83,21 +92,21 @@ export function ReferralModal({ open, onOpenChange }: ReferralModalProps) {
         </div>
 
         {/* Link */}
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">O comparte el link</p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-500 truncate font-mono">
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>O comparte el link</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ flex: 1, backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 12, padding: "10px 12px", fontSize: 11, color: "#6b7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "monospace" }}>
               {referralLink}
             </div>
             <button
               onClick={copyLink}
-              className="shrink-0 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-colors"
+              style={{ flexShrink: 0, padding: "10px 16px", backgroundColor: "#2563eb", color: "#fff", borderRadius: 12, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
             >
               Copiar
             </button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
