@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
+      selfDestroying: true,
       registerType: "autoUpdate",
       strategies: "injectManifest",
       srcDir: "src",
