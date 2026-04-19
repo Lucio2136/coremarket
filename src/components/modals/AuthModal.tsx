@@ -59,7 +59,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     setLoading(true);
     try {
       await signIn(email, password);
-      toast.success("¡Sesión iniciada!");
       handleClose(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error de autenticación");

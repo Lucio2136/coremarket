@@ -2,6 +2,11 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AlertCircle, RefreshCw, TrendingUp, DollarSign, CheckCircle, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { MarketCard } from "@/components/MarketCard";
+import { NewsPanel } from "@/components/NewsPanel";
+import { PricesWidget } from "@/components/PricesWidget";
+import { LeaderboardWidget } from "@/components/LeaderboardWidget";
+import { FeaturedSection } from "@/components/FeaturedSection";
+import { LiveFeedWidget } from "@/components/LiveFeedWidget";
 import { useMarkets } from "@/hooks/use-markets";
 import { useUserPositions } from "@/hooks/use-user-positions";
 import { useSavedMarkets } from "@/hooks/use-saved-markets";
@@ -48,7 +53,7 @@ const FAQS = [
   },
   {
     q: "¿Hay comisión?",
-    a: "Coremarket retiene un 2% del pozo ganador como fee de plataforma. El 98% restante se reparte entre los ganadores.",
+    a: "Lucebase retiene un 2% del pozo ganador como fee de plataforma. El 98% restante se reparte entre los ganadores.",
   },
 ];
 
@@ -68,7 +73,7 @@ function HowItWorks() {
             <Lightbulb size={13} className="text-amber-500" />
           </div>
           <span className="text-[13.5px] font-semibold text-slate-800 dark:text-gray-200">
-            ¿Cómo funciona Coremarket?
+            ¿Cómo funciona Lucebase?
           </span>
           <span className="text-[11px] font-medium text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
             Mercados de predicción
@@ -130,9 +135,9 @@ function HowItWorks() {
   );
 }
 
-function MarketCardSkeleton() {
+function MarketCardSkeleton({ className = "" }: { className?: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 animate-pulse">
+    <div className={`bg-white border border-gray-200 rounded-2xl p-4 animate-pulse ${className}`}>
       <div className="flex items-start gap-4 mb-3">
         <div className="w-9 h-9 rounded-xl bg-gray-100 shrink-0" />
         <div className="flex-1 space-y-2 pt-1">
@@ -205,7 +210,16 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+
+    {/* ── Hero / Featured (sin filtros activos) ── */}
+    {!loading && markets.length > 0 && !cat && !q && (
+      <FeaturedSection markets={markets} />
+    )}
+
+    <div className="flex gap-7 items-start">
+      {/* ── Columna principal ── */}
+      <div className="flex-1 min-w-0 space-y-4">
       {/* Cabecera de sección */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -229,8 +243,17 @@ export default function HomePage() {
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
-          {Array.from({ length: 8 }).map((_, i) => <MarketCardSkeleton key={i} />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 items-stretch">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <MarketCardSkeleton
+              key={i}
+              className={
+                i >= 6 ? "hidden lg:block" :
+                i >= 4 ? "hidden sm:block" :
+                ""
+              }
+            />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
@@ -245,7 +268,7 @@ export default function HomePage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 items-stretch">
           {filtered.map((market, i) => (
             <MarketCard
               key={market.id}
@@ -258,6 +281,16 @@ export default function HomePage() {
           ))}
         </div>
       )}
+      </div>{/* fin columna principal */}
+
+      {/* ── Sidebar derecha (solo desktop xl+) ── */}
+      <div className="hidden xl:flex flex-col gap-4" style={{ width: 260, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start" }}>
+        <PricesWidget />
+        {/* <LiveFeedWidget /> */}
+        <LeaderboardWidget />
+        <NewsPanel />
+      </div>
+    </div>
     </div>
   );
 }
