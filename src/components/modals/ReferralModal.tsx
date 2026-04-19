@@ -29,7 +29,7 @@ export function ReferralModal({ open, onOpenChange }: ReferralModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px] bg-white">
+      <DialogContent className="sm:max-w-[420px] bg-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <Gift size={20} className="text-violet-500" />
