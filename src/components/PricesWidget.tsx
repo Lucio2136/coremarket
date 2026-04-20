@@ -73,8 +73,8 @@ function fmtMXN(n: number) {
 }
 
 const COINS = [
-  { key: "bitcoin"  as const, label: "Bitcoin",  symbol: "BTC", icon: "₿", bg: "#FFF7ED", ic: "#F59E0B" },
-  { key: "ethereum" as const, label: "Ethereum", symbol: "ETH", icon: "Ξ", bg: "#EFF6FF", ic: "#3B82F6" },
+  { key: "bitcoin"  as const, label: "Bitcoin",  symbol: "BTC", img: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/btc.svg", bg: "#FFF7ED" },
+  { key: "ethereum" as const, label: "Ethereum", symbol: "ETH", img: "https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/eth.svg", bg: "#EFF6FF" },
 ];
 
 export function PricesWidget() {
@@ -139,8 +139,8 @@ export function PricesWidget() {
             return (
               <div key={c.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", borderBottom: "1px solid #F3F4F6" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 9, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: c.ic, fontWeight: 900, flexShrink: 0 }}>
-                    {c.icon}
+                  <div style={{ width: 30, height: 30, borderRadius: 9, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+                    <img src={c.img} alt={c.symbol} style={{ width: 20, height: 20, objectFit: "contain" }} />
                   </div>
                   <div>
                     <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#111827" }}>{c.label}</p>
@@ -172,8 +172,8 @@ export function PricesWidget() {
           {/* USD / MXN */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 9, background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#15803D", flexShrink: 0 }}>
-                $
+              <div style={{ width: 30, height: 30, borderRadius: 9, background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
+                <img src="https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/svg/color/usd.svg" alt="USD" style={{ width: 20, height: 20, objectFit: "contain" }} />
               </div>
               <div>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#111827" }}>Dólar</p>
