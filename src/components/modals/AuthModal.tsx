@@ -73,6 +73,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
       toast.error("Usuario: 3-20 caracteres, solo letras, números y _");
       return;
     }
+    if (password.length < 8) {
+      toast.error("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    if (!/[0-9]/.test(password) && !/[^a-zA-Z0-9]/.test(password)) {
+      toast.error("La contraseña debe incluir al menos un número o símbolo");
+      return;
+    }
     setLoading(true);
     try {
       await signUp(email, password, username, referralCode);
@@ -350,7 +358,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                   <div className="grid gap-2">
                     <Label htmlFor="signup-password">Contraseña</Label>
                     <div className="relative">
-                      <Input id="signup-password" type={showSignupPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required minLength={6} className="bg-gray-50 border-gray-200 pr-10" />
+                      <Input id="signup-password" type={showSignupPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required minLength={8} className="bg-gray-50 border-gray-200 pr-10" />
                       <button type="button" onClick={() => setShowSignupPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                         {showSignupPw ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>

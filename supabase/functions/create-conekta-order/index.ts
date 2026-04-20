@@ -4,8 +4,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const ALLOWED_ORIGINS = [
   "https://lucebase.mx",
   "https://www.lucebase.mx",
-  "http://localhost:8080",
-  "http://localhost:3000",
 ]
 
 function corsHeaders(reqOrigin: string | null) {
@@ -52,6 +50,15 @@ serve(async (req) => {
     const safeOrigin = ALLOWED_ORIGINS.includes(rawOrigin)
       ? rawOrigin
       : "https://lucebase.mx"
+
+    // Rate limit: 5 depósitos por hora por usuario
+    const { error: rlErr } = await supabase.rpc("check_rate_limit", {
+      p_user_id:     user.id,
+      p_action:      "deposit",
+      p_window_secs: 3600,
+      p_max_count:   5,
+    })
+    if (rlErr) throw new Error(rlErr.message)
 
     // Verificar sistema congelado
     const { data: settings } = await supabase

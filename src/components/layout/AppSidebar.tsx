@@ -41,7 +41,7 @@ export function AppSidebar() {
   const [referralOpen, setReferralOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const isAdmin = profile?.email === "outfisin@gmail.com";
+  const isAdmin = profile?.is_admin === true;
 
   if (isMobile) return null;
 

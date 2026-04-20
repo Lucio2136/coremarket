@@ -13,7 +13,6 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithFacebook: () => Promise<void>;
   signOut: () => Promise<void>;
-  updateBalance: (amount: number) => Promise<void>;
   updateProfile: (updates: { username?: string; bio?: string; avatar_color?: string; avatar_url?: string }) => Promise<void>;
   refreshProfile: () => Promise<void>;
   resetPasswordEmail: (email: string) => Promise<void>;
@@ -178,16 +177,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateBalance = async (amount: number) => {
-    if (!user) return;
-    const newBalance = balance + amount;
-    await supabase
-      .from("profiles")
-      .update({ balance_mxn: newBalance })
-      .eq("id", user.id);
-    setBalance(newBalance);
-  };
-
   const refreshProfile = async () => {
     if (user) await fetchProfile(user.id);
   };
@@ -209,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user, profile, balance, loading,
       isAuthenticated: !!user,
       signIn, signInWithGoogle, signInWithFacebook,
-      signUp, signOut, updateBalance, updateProfile, refreshProfile,
+      signUp, signOut, updateProfile, refreshProfile,
       resetPasswordEmail, updatePassword,
     }}>
       {children}

@@ -14,7 +14,6 @@ import {
   ShieldAlert, Zap, Pencil, X, PlusCircle, MinusCircle, ScrollText, Sparkles,
 } from "lucide-react";
 
-const ADMIN_EMAILS = ["outfisin@gmail.com"];
 type Tab = "dashboard" | "markets" | "users" | "create" | "treasury" | "withdrawals" | "auditlog" | "historial" | "borradores";
 
 /** Abreviado solo para ejes de gráficas */
@@ -81,7 +80,7 @@ function ChartTooltip({ active, payload }: any) {
 }
 
 export default function AdminPage() {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab]                   = useState<Tab>("dashboard");
   const [markets, setMarkets]             = useState<any[]>([]);
@@ -227,7 +226,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) { navigate("/"); return; }
+    if (!profile?.is_admin) { navigate("/"); return; }
     fetchAll();
   }, [user, authLoading]);
 
@@ -874,7 +873,7 @@ export default function AdminPage() {
     </div>
   );
 
-  if (!user || !ADMIN_EMAILS.includes(user.email || "")) return null;
+  if (!profile?.is_admin) return null;
 
   const chartData = markets
     .filter((m) => m.total_pool > 0)

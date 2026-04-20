@@ -32,6 +32,7 @@ export interface Profile {
   referred_by: string | null;
   referral_count: number;
   referral_earnings_mxn: number;
+  is_admin: boolean;
   created_at: string;
   updated_at: string;
 }

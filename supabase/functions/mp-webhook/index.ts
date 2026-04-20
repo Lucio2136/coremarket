@@ -2,31 +2,70 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 serve(async (req) => {
-  // MP envía GET con query params para verificación, y POST con la notificación
-  const url = new URL(req.url)
-  const topic = url.searchParams.get("topic") || url.searchParams.get("type")
-  const id    = url.searchParams.get("id") || url.searchParams.get("data.id")
-
-  // MP hace una verificación GET al registrar la URL — responder 200
+  // MP hace GET para verificar la URL — responder 200
   if (req.method === "GET") {
     return new Response("ok", { status: 200 })
   }
 
-  // Solo nos interesan notificaciones de pagos
-  if (topic !== "payment" && topic !== "payment_id") {
-    // Intentar leer el body para obtener el payment id
-    try {
-      const body = await req.json()
-      const paymentId = body?.data?.id
-      if (!paymentId) return new Response("ok", { status: 200 })
-      return await processPayment(String(paymentId))
-    } catch {
-      return new Response("ok", { status: 200 })
-    }
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 })
   }
 
-  if (!id) return new Response("Missing id", { status: 400 })
-  return await processPayment(id)
+  // ── Verificar firma de MP ────────────────────────────────────────────────
+  // MP envía x-signature: ts=TIMESTAMP,v1=HMAC-SHA256(id:{data.id};request-id:{x-request-id};ts:{ts})
+  const webhookSecret = Deno.env.get("MP_WEBHOOK_SECRET")
+  if (!webhookSecret) {
+    console.error("MP_WEBHOOK_SECRET no configurado — rechazando por seguridad")
+    return new Response("Webhook secret not configured", { status: 500 })
+  }
+
+  const xSignature = req.headers.get("x-signature") ?? ""
+  const xRequestId = req.headers.get("x-request-id") ?? ""
+  const url        = new URL(req.url)
+  const dataId     = url.searchParams.get("data.id") ?? url.searchParams.get("id") ?? ""
+
+  const sigParts = Object.fromEntries(
+    xSignature.split(",").flatMap(p => {
+      const [k, v] = p.split("=")
+      return k && v ? [[k.trim(), v.trim()]] : []
+    })
+  )
+  const ts   = sigParts["ts"]  ?? ""
+  const hash = sigParts["v1"]  ?? ""
+
+  if (!ts || !hash) {
+    console.error("x-signature ausente o malformado")
+    return new Response("Invalid signature", { status: 401 })
+  }
+
+  const message    = `id:${dataId};request-id:${xRequestId};ts:${ts}`
+  const keyBytes   = new TextEncoder().encode(webhookSecret)
+  const msgBytes   = new TextEncoder().encode(message)
+  const cryptoKey  = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  )
+  const sigBytes   = await crypto.subtle.sign("HMAC", cryptoKey, msgBytes)
+  const expected   = Array.from(new Uint8Array(sigBytes))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("")
+
+  if (hash !== expected) {
+    console.error("Firma MP inválida — posible request no autorizado")
+    return new Response("Invalid signature", { status: 401 })
+  }
+
+  // ── Filtrar tipo de notificación ─────────────────────────────────────────
+  const topic = url.searchParams.get("topic") ?? url.searchParams.get("type") ?? ""
+  if (topic && topic !== "payment" && topic !== "payment_id") {
+    return new Response(JSON.stringify({ received: true, skipped: true }), { status: 200 })
+  }
+
+  if (!dataId) {
+    console.error("Webhook MP sin data.id en query params")
+    return new Response("Missing data.id", { status: 400 })
+  }
+
+  return await processPayment(dataId)
 })
 
 async function processPayment(paymentId: string) {
@@ -36,7 +75,7 @@ async function processPayment(paymentId: string) {
     return new Response("Config error", { status: 500 })
   }
 
-  // Obtener detalles del pago desde MP
+  // Verificar el pago directamente con la API de MP (fuente de verdad)
   const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
     headers: { Authorization: `Bearer ${mpAccessToken}` },
   })
@@ -48,12 +87,14 @@ async function processPayment(paymentId: string) {
 
   const payment = await res.json()
 
-  // Solo procesar pagos aprobados
   if (payment.status !== "approved") {
     console.log(`Pago ${paymentId} ignorado — status: ${payment.status}`)
     return new Response(JSON.stringify({ received: true, skipped: true }), { status: 200 })
   }
 
+  // user_id viene del metadata que nuestro servidor guardó en MP al crear la preferencia,
+  // NO del cuerpo del webhook. La verificación de firma garantiza que el payment ID
+  // no fue inyectado; la API de MP garantiza que el metadata es el que nosotros pusimos.
   const userId    = payment.metadata?.user_id
   const amountMxn = payment.transaction_amount
 
@@ -67,7 +108,7 @@ async function processPayment(paymentId: string) {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   )
 
-  // ── Idempotencia: evitar acreditar el mismo pago dos veces ──────────────────
+  // ── Idempotencia ─────────────────────────────────────────────────────────
   const { data: existing } = await supabase
     .from("transactions")
     .select("id")
@@ -79,7 +120,7 @@ async function processPayment(paymentId: string) {
     return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 })
   }
 
-  // ── Acreditar saldo ─────────────────────────────────────────────────────────
+  // ── Verificar que el usuario existe ──────────────────────────────────────
   const { data: profile, error: profileErr } = await supabase
     .from("profiles")
     .select("balance_mxn")
@@ -93,6 +134,7 @@ async function processPayment(paymentId: string) {
 
   const balanceAfter = profile.balance_mxn + amountMxn
 
+  // ── Acreditar saldo ───────────────────────────────────────────────────────
   const { error: updateErr } = await supabase
     .from("profiles")
     .update({ balance_mxn: balanceAfter })
@@ -103,7 +145,7 @@ async function processPayment(paymentId: string) {
     return new Response("Error updating balance", { status: 500 })
   }
 
-  // ── Registrar transacción ───────────────────────────────────────────────────
+  // ── Registrar transacción ─────────────────────────────────────────────────
   const { error: txErr } = await supabase
     .from("transactions")
     .insert({
@@ -111,13 +153,16 @@ async function processPayment(paymentId: string) {
       type:                     "deposit",
       amount:                   amountMxn,
       balance_after:            balanceAfter,
-      stripe_payment_intent_id: `mp_${paymentId}`,  // reutilizamos columna para idempotencia
-      description:              `Depósito vía Mercado Pago`,
+      stripe_payment_intent_id: `mp_${paymentId}`,
+      description:              "Depósito vía Mercado Pago",
     })
 
   if (txErr?.code === "23505") {
-    // Unique constraint — duplicado concurrente, ya acreditado
     return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 })
+  }
+  if (txErr) {
+    console.error("Error insertando transacción:", txErr)
+    return new Response("Error recording transaction", { status: 500 })
   }
 
   console.log(`Depósito MP acreditado: user=${userId} amount=${amountMxn} payment=${paymentId}`)

@@ -1,9 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  "https://lucebase.mx",
+  "https://www.lucebase.mx",
+]
+
+function corsHeaders(reqOrigin: string | null) {
+  const origin = reqOrigin && ALLOWED_ORIGINS.includes(reqOrigin)
+    ? reqOrigin
+    : "https://lucebase.mx"
+  return {
+    "Access-Control-Allow-Origin":  origin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  }
 }
 
 /**
@@ -16,8 +28,10 @@ const corsHeaders = {
  * ninguna lógica financiera para evitar divergencias con la RPC.
  */
 serve(async (req) => {
+  const headers = corsHeaders(req.headers.get("origin"))
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers })
   }
 
   try {
@@ -58,7 +72,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ bet: data }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...headers, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
@@ -66,7 +80,7 @@ serve(async (req) => {
       JSON.stringify({ error: msg }),
       {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Content-Type': 'application/json' },
       }
     )
   }

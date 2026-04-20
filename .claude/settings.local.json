@@ -16,7 +16,17 @@
       "Bash(git checkout *)",
       "Bash(git push *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npx vercel *)",
+      "Bash(git commit -m 'fix: correct JSX tag nesting in AdminPage Borradores tab *)",
+      "Bash(git commit -m 'feat: replace Anthropic API with free built-in market templates *)",
+      "Bash(git commit -m 'fix: strip no_percent before inserting draft markets *)",
+      "Bash(git commit -m 'fix: map Famosos→Entretenimiento and Economía→Finanzas for category constraint *)",
+      "Bash(git commit -m 'feat: replace letter icons with real crypto images in PricesWidget *)",
+      "Bash(git commit -m 'feat: add Google Trends MX and Bolsa Mexicana \\(IPC\\) live widgets *)",
+      "Bash(git commit -m 'fix: TrendsWidget uses allorigins.win proxy, no edge function needed *)",
+      "Bash(git commit -m 'fix: TrendsWidget tries 3 CORS proxies with fallback chain *)",
+      "Bash(git commit -m 'remove: hide FeaturedSection hero from homepage *)"
     ]
   }
 }
