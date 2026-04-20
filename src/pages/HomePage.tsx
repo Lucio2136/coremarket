@@ -284,9 +284,9 @@ export default function HomePage() {
       {/* ── Sidebar derecha (solo desktop xl+) ── */}
       <div className="hidden xl:flex flex-col gap-4" style={{ width: 260, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start" }}>
         <StatsSection />
+        <NewsPanel />
         <TrendsWidget />
         <LeaderboardWidget />
-        <NewsPanel />
       </div>
 
     </div>
