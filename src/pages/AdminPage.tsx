@@ -420,13 +420,102 @@ export default function AdminPage() {
   const generateWithAI = async () => {
     setGeneratingMarkets(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-markets");
+      const daysFromNow = (d: number) => {
+        const dt = new Date();
+        dt.setDate(dt.getDate() + d);
+        return dt.toISOString();
+      };
+
+      const TEMPLATES: Omit<any, "status" | "total_pool" | "bettor_count" | "market_type">[] = [
+        // ── Música / Entretenimiento ──────────────────────────────────────────
+        { title: "¿Peso Pluma lanzará un álbum completo antes de diciembre 2026?", subject_name: "Peso Pluma", category: "Entretenimiento", yes_percent: 72, no_percent: 28, yes_odds: 1.4, no_odds: 3.2, closes_at: daysFromNow(150), description: "Hassan viene on fire pero su ritmo de lanzamientos es impredecible" },
+        { title: "¿Nodal y Ángela Aguilar anunciarán su primer embarazo en 2026?", subject_name: "Nodal", category: "Famosos", yes_percent: 44, no_percent: 56, yes_odds: 2.1, no_odds: 1.8, closes_at: daysFromNow(180), description: "Los Pepe Aguilar Jr. están recién casados, el morbo está al 100" },
+        { title: "¿Cazzu sacará canción dedicada a Nodal antes de agosto 2026?", subject_name: "Cazzu", category: "Entretenimiento", yes_percent: 38, no_percent: 62, yes_odds: 2.5, no_odds: 1.6, closes_at: daysFromNow(120), description: "La Nena Trampa tiene todo el derecho y el material emocional" },
+        { title: "¿Peso Pluma colaborará con Bad Bunny en 2026?", subject_name: "Peso Pluma", category: "Entretenimiento", yes_percent: 55, no_percent: 45, yes_odds: 1.8, no_odds: 2.1, closes_at: daysFromNow(210), description: "Dos reyes del género, la collab más pedida del año" },
+        { title: "¿Natanael Cano aparecerá en el Coachella 2027?", subject_name: "Natanael Cano", category: "Entretenimiento", yes_percent: 30, no_percent: 70, yes_odds: 3.1, no_odds: 1.4, closes_at: daysFromNow(160), description: "El corrido tumbado conquistó EU, ¿llegará al escenario más importante?" },
+        { title: "¿Junior H lanzará colaboración con artista pop en 2026?", subject_name: "Junior H", category: "Entretenimiento", yes_percent: 48, no_percent: 52, yes_odds: 2.0, no_odds: 1.9, closes_at: daysFromNow(140), description: "El corrido sad busca nuevos públicos" },
+        { title: "¿Ángela Aguilar ganará un Grammy Latino antes de 2027?", subject_name: "Ángela Aguilar", category: "Entretenimiento", yes_percent: 41, no_percent: 59, yes_odds: 2.3, no_odds: 1.7, closes_at: daysFromNow(200), description: "Tiene el apellido, el talento y la polémica a su favor" },
+        { title: "¿Nodal lanzará un disco de ranchera puro antes de fin de año?", subject_name: "Nodal", category: "Entretenimiento", yes_percent: 33, no_percent: 67, yes_odds: 2.8, no_odds: 1.5, closes_at: daysFromNow(180), description: "Dicen que quiere regresar a sus raíces después del drama" },
+        { title: "¿Peso Pluma superará 100M de oyentes en Spotify en 2026?", subject_name: "Peso Pluma", category: "Entretenimiento", yes_percent: 58, no_percent: 42, yes_odds: 1.7, no_odds: 2.2, closes_at: daysFromNow(240), description: "Ya está en los 80M, la trayectoria apunta hacia arriba" },
+        { title: "¿Fuerza Regida hará una gira conjunta con Peso Pluma en 2026?", subject_name: "Fuerza Regida", category: "Entretenimiento", yes_percent: 62, no_percent: 38, yes_odds: 1.6, no_odds: 2.5, closes_at: daysFromNow(150), description: "La combinación más poderosa del corrido tumbado" },
+
+        // ── Influencers ───────────────────────────────────────────────────────
+        { title: "¿Domelipa llegará a 90M seguidores en TikTok antes de octubre 2026?", subject_name: "Domelipa", category: "Famosos", yes_percent: 65, no_percent: 35, yes_odds: 1.5, no_odds: 2.7, closes_at: daysFromNow(170), description: "La reina del TikTok mexicano no para de crecer" },
+        { title: "¿Wendy Guevara saldrá en una telenovela de Televisa en 2026?", subject_name: "Wendy Guevara", category: "Famosos", yes_percent: 52, no_percent: 48, yes_odds: 1.9, no_odds: 2.0, closes_at: daysFromNow(200), description: "El trampolín de LCDLF la catapultó, Televisa siempre va por el rating" },
+        { title: "¿Lizbeth Rodríguez se reconciliará con algún ex en 2026?", subject_name: "Lizbeth Rodríguez", category: "Famosos", yes_percent: 28, no_percent: 72, yes_odds: 3.3, no_odds: 1.4, closes_at: daysFromNow(120), description: "La reina del drama romántico en redes" },
+        { title: "¿Gomita protagonizará una polémica viral antes de julio 2026?", subject_name: "Gomita", category: "Famosos", yes_percent: 78, no_percent: 22, yes_odds: 1.3, no_odds: 4.0, closes_at: daysFromNow(90), description: "Gomita y la polémica son inseparables, la historia lo confirma" },
+        { title: "¿Kunno llegará al millón de suscriptores en YouTube en 2026?", subject_name: "Kunno", category: "Famosos", yes_percent: 45, no_percent: 55, yes_odds: 2.1, no_odds: 1.8, closes_at: daysFromNow(150), description: "El rey del cringe mexicano busca consolidarse fuera de TikTok" },
+        { title: "¿Kimberly La Más Preciosa tendrá su propia serie en 2026?", subject_name: "Kimberly La Más Preciosa", category: "Famosos", yes_percent: 35, no_percent: 65, yes_odds: 2.7, no_odds: 1.5, closes_at: daysFromNow(180), description: "El fenómeno de Vecinos que conquistó internet" },
+        { title: "¿Yeri Mua lanzará línea de maquillaje propia antes de diciembre 2026?", subject_name: "Yeri Mua", category: "Famosos", yes_percent: 60, no_percent: 40, yes_odds: 1.6, no_odds: 2.4, closes_at: daysFromNow(200), description: "Ya tiene el público fiel y la influencia de belleza" },
+        { title: "¿Luisito Comunica superará 50M suscriptores en YouTube en 2026?", subject_name: "Luisito Comunica", category: "Famosos", yes_percent: 55, no_percent: 45, yes_odds: 1.8, no_odds: 2.1, closes_at: daysFromNow(220), description: "El youtuber mexicano más grande sigue creciendo" },
+
+        // ── Política ──────────────────────────────────────────────────────────
+        { title: "¿Claudia Sheinbaum terminará su primer año con más del 60% de aprobación?", subject_name: "Claudia Sheinbaum", category: "Política", yes_percent: 58, no_percent: 42, yes_odds: 1.7, no_odds: 2.2, closes_at: daysFromNow(100), description: "La primera presidenta de México enfrenta su primera crisis" },
+        { title: "¿México declarará emergencia económica en 2026 por aranceles de Trump?", subject_name: "México", category: "Política", yes_percent: 32, no_percent: 68, yes_odds: 2.9, no_odds: 1.5, closes_at: daysFromNow(150), description: "La guerra comercial entre EU y México tiene a todos nerviosos" },
+        { title: "¿Morena ganará más del 50% de las gubernaturas en elecciones de 2026?", subject_name: "Morena", category: "Política", yes_percent: 66, no_percent: 34, yes_odds: 1.5, no_odds: 2.7, closes_at: daysFromNow(200), description: "El partido guinda sigue dominando el mapa electoral" },
+        { title: "¿Xóchitl Gálvez lanzará candidatura en 2027?", subject_name: "Xóchitl Gálvez", category: "Política", yes_percent: 42, no_percent: 58, yes_odds: 2.2, no_odds: 1.7, closes_at: daysFromNow(180), description: "La senadora no se rinde fácilmente" },
+        { title: "¿AMLO hará declaración política controversial desde Palenque antes de julio 2026?", subject_name: "AMLO", category: "Política", yes_percent: 85, no_percent: 15, yes_odds: 1.2, no_odds: 5.5, closes_at: daysFromNow(80), description: "El exPresidente en modo blogger chiapaneco siempre tiene algo que decir" },
+        { title: "¿México y EU firmarán nuevo acuerdo comercial antes de 2027?", subject_name: "México", category: "Política", yes_percent: 40, no_percent: 60, yes_odds: 2.4, no_odds: 1.7, closes_at: daysFromNow(250), description: "El T-MEC bajo presión, ¿habrá renegociación?" },
+
+        // ── Deportes ──────────────────────────────────────────────────────────
+        { title: "¿Canelo Álvarez peleará en México antes de diciembre 2026?", subject_name: "Canelo Álvarez", category: "Deportes", yes_percent: 48, no_percent: 52, yes_odds: 2.0, no_odds: 1.9, closes_at: daysFromNow(200), description: "El Rey siempre pelea en EU, ¿regalará una pelea a su tierra?" },
+        { title: "¿Canelo Álvarez ganará su próxima pelea por KO?", subject_name: "Canelo Álvarez", category: "Deportes", yes_percent: 55, no_percent: 45, yes_odds: 1.8, no_odds: 2.1, closes_at: daysFromNow(120), description: "El Canelo busca recuperar su imagen dominante" },
+        { title: "¿Chivas llegará a la final del Clausura 2026?", subject_name: "Chivas", category: "Deportes", yes_percent: 38, no_percent: 62, yes_odds: 2.5, no_odds: 1.6, closes_at: daysFromNow(60), description: "El Rebaño Sagrado siempre promete y raramente cumple" },
+        { title: "¿Club América ganará el Apertura 2026?", subject_name: "Club América", category: "Deportes", yes_percent: 45, no_percent: 55, yes_odds: 2.1, no_odds: 1.8, closes_at: daysFromNow(160), description: "Las Águilas buscan otro bicampeonato" },
+        { title: "¿La Selección Mexicana clasificará al Mundial 2026 en primer lugar de CONCACAF?", subject_name: "Selección Mexicana", category: "Deportes", yes_percent: 42, no_percent: 58, yes_odds: 2.3, no_odds: 1.7, closes_at: daysFromNow(120), description: "El Tri en casa, con presión histórica por ser sede del Mundial" },
+        { title: "¿México llegará a cuartos de final en el Mundial 2026?", subject_name: "Selección Mexicana", category: "Deportes", yes_percent: 35, no_percent: 65, yes_odds: 2.7, no_odds: 1.5, closes_at: daysFromNow(180), description: "El quinto partido maldito, ¿se rompe la maldición en casa?" },
+        { title: "¿Hirving Lozano se retirará de la Selección antes del Mundial 2026?", subject_name: "Hirving Lozano", category: "Deportes", yes_percent: 22, no_percent: 78, yes_odds: 4.1, no_odds: 1.3, closes_at: daysFromNow(100), description: "El Chucky sigue siendo clave para el Tri a pesar de las lesiones" },
+        { title: "¿Tigres o Rayados ganará el clásico regio en el siguiente torneo?", subject_name: "Tigres UANL", category: "Deportes", yes_percent: 50, no_percent: 50, yes_odds: 1.9, no_odds: 1.9, closes_at: daysFromNow(80), description: "El duelo más intenso del norte de México" },
+        { title: "¿Guillermo Ochoa seguirá siendo titular en el Mundial 2026?", subject_name: "Guillermo Ochoa", category: "Deportes", yes_percent: 60, no_percent: 40, yes_odds: 1.6, no_odds: 2.4, closes_at: daysFromNow(150), description: "El Memo es eterno, pero hay competencia real ahora" },
+
+        // ── Economía ──────────────────────────────────────────────────────────
+        { title: "¿El dólar superará $22 pesos MXN antes de septiembre 2026?", subject_name: "Dólar / Peso MXN", category: "Economía", yes_percent: 45, no_percent: 55, yes_odds: 2.1, no_odds: 1.8, closes_at: daysFromNow(150), description: "Los aranceles de Trump presionan al peso mexicano" },
+        { title: "¿La inflación en México bajará del 4% antes de diciembre 2026?", subject_name: "Banxico", category: "Economía", yes_percent: 38, no_percent: 62, yes_odds: 2.5, no_odds: 1.6, closes_at: daysFromNow(200), description: "Banxico sigue con política restrictiva para controlar precios" },
+        { title: "¿Pemex anunciará un nuevo descubrimiento de petróleo significativo en 2026?", subject_name: "Pemex", category: "Economía", yes_percent: 30, no_percent: 70, yes_odds: 3.1, no_odds: 1.4, closes_at: daysFromNow(180), description: "La empresa más endeudada del mundo necesita buenas noticias" },
+        { title: "¿México recibirá más de $50B USD en nearshoring en 2026?", subject_name: "México", category: "Economía", yes_percent: 55, no_percent: 45, yes_odds: 1.8, no_odds: 2.0, closes_at: daysFromNow(240), description: "La reconfiguración de cadenas de suministro favorece a México" },
+        { title: "¿El salario mínimo en México subirá más del 10% en 2027?", subject_name: "STPS México", category: "Economía", yes_percent: 62, no_percent: 38, yes_odds: 1.6, no_odds: 2.5, closes_at: daysFromNow(200), description: "El gobierno ha subido el salario mínimo varios años consecutivos" },
+        { title: "¿Bajarán las tasas de interés de Banxico a menos del 8% antes de 2027?", subject_name: "Banxico", category: "Economía", yes_percent: 48, no_percent: 52, yes_odds: 2.0, no_odds: 1.9, closes_at: daysFromNow(250), description: "La inflación controlada abre la puerta a recortes" },
+        { title: "¿El peso mexicano se fortalecerá a menos de $18 por dólar en 2026?", subject_name: "Dólar / Peso MXN", category: "Economía", yes_percent: 20, no_percent: 80, yes_odds: 4.5, no_odds: 1.3, closes_at: daysFromNow(200), description: "El peso viene perdiendo terreno, revertirlo sería histórico" },
+
+        // ── Más morbo / Entretenimiento ───────────────────────────────────────
+        { title: "¿Karol G visitará México en gira antes de diciembre 2026?", subject_name: "Karol G", category: "Entretenimiento", yes_percent: 70, no_percent: 30, yes_odds: 1.4, no_odds: 3.1, closes_at: daysFromNow(200), description: "La Bichota ama México y México la ama a ella" },
+        { title: "¿Bad Bunny lanzará nuevo álbum en 2026?", subject_name: "Bad Bunny", category: "Entretenimiento", yes_percent: 60, no_percent: 40, yes_odds: 1.6, no_odds: 2.4, closes_at: daysFromNow(180), description: "El conejo malo tiene ritmo de un álbum por año" },
+        { title: "¿Grupo Firme se separará en 2026?", subject_name: "Grupo Firme", category: "Entretenimiento", yes_percent: 15, no_percent: 85, yes_odds: 6.0, no_odds: 1.2, closes_at: daysFromNow(180), description: "Hay rumores de tensiones internas en el grupo de Eduin Caz" },
+        { title: "¿Eduin Caz de Grupo Firme protagonizará una polémica viral en 2026?", subject_name: "Eduin Caz", category: "Famosos", yes_percent: 75, no_percent: 25, yes_odds: 1.3, no_odds: 3.7, closes_at: daysFromNow(120), description: "Eduin y la polémica van de la mano desde siempre" },
+        { title: "¿Shakira lanzará colaboración con artista mexicano en 2026?", subject_name: "Shakira", category: "Entretenimiento", yes_percent: 50, no_percent: 50, yes_odds: 1.9, no_odds: 1.9, closes_at: daysFromNow(160), description: "La colombiana ha explorado el regional mexicano con éxito" },
+        { title: "¿Christian Nodal lanzará canción que haga referencia indirecta a Cazzu?", subject_name: "Nodal", category: "Famosos", yes_percent: 40, no_percent: 60, yes_odds: 2.4, no_odds: 1.6, closes_at: daysFromNow(90), description: "Los artistas siempre tienen algo que decir sobre sus ex" },
+        { title: "¿Peso Pluma ganará el Grammy Latino al Álbum del Año en 2026?", subject_name: "Peso Pluma", category: "Entretenimiento", yes_percent: 35, no_percent: 65, yes_odds: 2.7, no_odds: 1.5, closes_at: daysFromNow(200), description: "El corrido tumbado busca el reconocimiento máximo de la industria" },
+        { title: "¿Teletubbies mexicanos (Dulce, Kimberly, Wendy, Paola) harán reality show en 2026?", subject_name: "Las Perdidas", category: "Famosos", yes_percent: 45, no_percent: 55, yes_odds: 2.1, no_odds: 1.8, closes_at: daysFromNow(150), description: "El grupo más viral de México podría conquistar la televisión" },
+        { title: "¿La youtuber mexicana Yuya regresará activamente a YouTube en 2026?", subject_name: "Yuya", category: "Famosos", yes_percent: 30, no_percent: 70, yes_odds: 3.1, no_odds: 1.4, closes_at: daysFromNow(150), description: "La pionera del YouTube en español lleva tiempo alejada" },
+        { title: "¿Belinda lanzará nuevo sencillo antes de agosto 2026?", subject_name: "Belinda", category: "Entretenimiento", yes_percent: 65, no_percent: 35, yes_odds: 1.5, no_odds: 2.7, closes_at: daysFromNow(110), description: "La princesa del pop mexicano siempre vuelve" },
+        { title: "¿Televisa lanzará un reality show de corridos tumbados en 2026?", subject_name: "Televisa", category: "Entretenimiento", yes_percent: 38, no_percent: 62, yes_odds: 2.5, no_odds: 1.6, closes_at: daysFromNow(160), description: "Televisa siempre sigue las tendencias, aunque tarde" },
+        { title: "¿El Escorpión Dorado hará entrevista viral con político mexicano en 2026?", subject_name: "El Escorpión Dorado", category: "Famosos", yes_percent: 80, no_percent: 20, yes_odds: 1.3, no_odds: 4.5, closes_at: daysFromNow(100), description: "Escorpión siempre consigue lo imposible con su estilo único" },
+        { title: "¿Peso Pluma será nombrado embajador del turismo mexicano en 2026?", subject_name: "Peso Pluma", category: "Política", yes_percent: 22, no_percent: 78, yes_odds: 4.2, no_odds: 1.3, closes_at: daysFromNow(200), description: "El gobierno siempre busca íconos populares para promover México" },
+        { title: "¿Habrá escándalo de corrupción de alto nivel en México antes de octubre 2026?", subject_name: "México", category: "Política", yes_percent: 82, no_percent: 18, yes_odds: 1.2, no_odds: 5.0, closes_at: daysFromNow(160), description: "La historia de México habla por sí sola" },
+        { title: "¿El Inter Miami de Messi visitará México para partido en 2026?", subject_name: "Lionel Messi", category: "Deportes", yes_percent: 55, no_percent: 45, yes_odds: 1.8, no_odds: 2.1, closes_at: daysFromNow(180), description: "Messi en México sería el evento del año" },
+        { title: "¿Checo Pérez regresará a la Fórmula 1 con algún equipo en 2027?", subject_name: "Checo Pérez", category: "Deportes", yes_percent: 40, no_percent: 60, yes_odds: 2.4, no_odds: 1.7, closes_at: daysFromNow(240), description: "El tapatío busca la manera de volver al paddock" },
+        { title: "¿El GP de México 2026 venderá más entradas que el de 2025?", subject_name: "GP México", category: "Deportes", yes_percent: 68, no_percent: 32, yes_odds: 1.5, no_odds: 3.0, closes_at: daysFromNow(200), description: "El Gran Premio de México siempre rompe récords de asistencia" },
+      ];
+
+      // Mezcla aleatoria y toma 10
+      const shuffled = [...TEMPLATES].sort(() => Math.random() - 0.5).slice(0, 10);
+
+      const toInsert = shuffled.map((t) => ({
+        ...t,
+        market_type: "binary",
+        total_pool: 0,
+        bettor_count: 0,
+        status: "draft",
+        is_trending: false,
+      }));
+
+      const { data, error } = await supabase.from("markets").insert(toInsert).select("id");
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`${data.count} borradores generados con IA — revísalos antes de publicar`);
+
+      toast.success(`10 borradores listos para revisar — ¡elige los mejores!`);
       fetchAll();
     } catch (err: any) {
-      toast.error(err.message || "Error al generar mercados con IA");
+      toast.error(err.message || "Error al generar mercados");
     } finally {
       setGeneratingMarkets(false);
     }
