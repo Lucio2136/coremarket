@@ -5,20 +5,12 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const UA = "Mozilla/5.0 (compatible; Lucebase/1.0)";
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-// ── Google Trends MX ────────────────────────────────────────────────────────
-async function handleTrends(): Promise<Response> {
-  const res = await fetch(
-    "https://trends.google.com/trends/trendingsearches/daily/rss?geo=MX",
-    { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(10_000) }
-  );
-  const xml = await res.text();
-
+function parseTrendsXml(xml: string): { title: string; traffic: string | null }[] {
   const trends: { title: string; traffic: string | null }[] = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match: RegExpExecArray | null;
-
   while ((match = itemRegex.exec(xml)) !== null && trends.length < 15) {
     const item = match[1];
     const titleMatch   = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ??
@@ -30,6 +22,33 @@ async function handleTrends(): Promise<Response> {
         traffic: trafficMatch ? trafficMatch[1].trim() : null,
       });
     }
+  }
+  return trends;
+}
+
+// ── Google Trends MX ────────────────────────────────────────────────────────
+async function handleTrends(): Promise<Response> {
+  const ENDPOINTS = [
+    "https://trends.google.com/trending/rss?geo=MX",
+    "https://trends.google.com/trends/trendingsearches/daily/rss?geo=MX",
+  ];
+
+  const HEADERS = {
+    "User-Agent": UA,
+    "Accept": "application/rss+xml, application/xml, text/xml, */*",
+    "Accept-Language": "es-MX,es;q=0.9",
+    "Cache-Control": "no-cache",
+  };
+
+  let trends: { title: string; traffic: string | null }[] = [];
+
+  for (const url of ENDPOINTS) {
+    try {
+      const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(10_000) });
+      const xml = await res.text();
+      trends = parseTrendsXml(xml);
+      if (trends.length > 0) break;
+    } catch { /* siguiente */ }
   }
 
   return new Response(JSON.stringify({ trends }), {
