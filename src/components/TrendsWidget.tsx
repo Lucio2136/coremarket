@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { RefreshCw, TrendingUp, ExternalLink } from "lucide-react";
+import { RefreshCw, ExternalLink } from "lucide-react";
 
 interface Trend {
   title: string;
@@ -24,22 +23,33 @@ export function TrendsWidget() {
     setSpinning(true);
     setError(false);
     try {
-      const { data, error: fnErr } = await supabase.functions.invoke(
-        "fetch-market-data",
-        { method: "GET", headers: { "x-type": "trends" } }
-      );
+      const trendsUrl = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=MX";
+      const proxyUrl  = `https://api.allorigins.win/get?url=${encodeURIComponent(trendsUrl)}`;
 
-      // invoke wraps GET params differently — use fetch directly
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-market-data?type=trends`;
-      const res  = await fetch(url, {
-        headers: {
-          apikey:        import.meta.env.VITE_SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-      });
+      const res  = await fetch(proxyUrl, { signal: AbortSignal.timeout(12_000) });
       const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error ?? "error");
-      setTrends(json.trends ?? []);
+      const xml: string = json.contents ?? "";
+      if (!xml) throw new Error("empty");
+
+      const parsed: Trend[] = [];
+      const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+      let match: RegExpExecArray | null;
+
+      while ((match = itemRegex.exec(xml)) !== null && parsed.length < 15) {
+        const item = match[1];
+        const titleMatch   = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ??
+                             item.match(/<title>(.*?)<\/title>/);
+        const trafficMatch = item.match(/<ht:approx_traffic>(.*?)<\/ht:approx_traffic>/);
+        if (titleMatch) {
+          parsed.push({
+            title:   titleMatch[1].trim(),
+            traffic: trafficMatch ? trafficMatch[1].trim() : null,
+          });
+        }
+      }
+
+      if (parsed.length === 0) throw new Error("no trends parsed");
+      setTrends(parsed);
       setUpdated(new Date());
     } catch {
       setError(true);
