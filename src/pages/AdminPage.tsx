@@ -500,8 +500,10 @@ export default function AdminPage() {
       // Mezcla aleatoria y toma 10
       const shuffled = [...TEMPLATES].sort(() => Math.random() - 0.5).slice(0, 10);
 
+      const CAT_MAP: Record<string, string> = { Famosos: "Entretenimiento", Economía: "Finanzas" };
       const toInsert = shuffled.map(({ no_percent: _np, ...t }) => ({
         ...t,
+        category: CAT_MAP[t.category] ?? t.category,
         market_type: "binary",
         total_pool: 0,
         bettor_count: 0,
