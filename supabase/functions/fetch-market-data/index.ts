@@ -90,13 +90,49 @@ async function handleStocks(): Promise<Response> {
   });
 }
 
+// ── IPC histórico (7 días) ───────────────────────────────────────────────────
+async function handleIpcHistory(): Promise<Response> {
+  const TICKERS = [
+    { sym: "%5EMXX",      label: "IPC",    full: "S&P/BMV IPC"   },
+    { sym: "AMXL.MX",     label: "AMXL",   full: "América Móvil" },
+    { sym: "FEMSAUBD.MX", label: "FEMSA",  full: "FEMSA"         },
+  ];
+
+  const results = await Promise.allSettled(
+    TICKERS.map(({ sym }) =>
+      fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=7d`,
+        { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(8_000) }
+      ).then((r) => r.json())
+    )
+  );
+
+  const cards = TICKERS.map(({ label, full }, i) => {
+    const r = results[i];
+    if (r.status === "rejected") return null;
+    const result = r.value?.chart?.result?.[0];
+    if (!result) return null;
+    const closes: number[] = (result.indicators?.quote?.[0]?.close ?? []).filter(Boolean);
+    const meta = result.meta;
+    const price  = meta.regularMarketPrice as number;
+    const prev   = (meta.chartPreviousClose ?? meta.previousClose) as number;
+    const change = prev ? ((price - prev) / prev) * 100 : 0;
+    return { label, full, price, change, closes };
+  }).filter(Boolean);
+
+  return new Response(JSON.stringify({ cards }), {
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
+}
+
 // ── Router ───────────────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
     const type = new URL(req.url).searchParams.get("type");
-    if (type === "trends") return await handleTrends();
+    if (type === "trends")      return await handleTrends();
+    if (type === "ipc_history") return await handleIpcHistory();
     if (type === "stocks") return await handleStocks();
     return new Response(JSON.stringify({ error: "type must be trends or stocks" }), {
       status: 400, headers: { ...CORS, "Content-Type": "application/json" },

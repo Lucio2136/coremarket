@@ -7,6 +7,7 @@ import { PricesWidget } from "@/components/PricesWidget";
 import { LeaderboardWidget } from "@/components/LeaderboardWidget";
 import { TrendsWidget } from "@/components/TrendsWidget";
 import { StockWidget } from "@/components/StockWidget";
+import { StatsSection } from "@/components/StatsSection";
 import { FeaturedSection } from "@/components/FeaturedSection";
 import { LiveFeedWidget } from "@/components/LiveFeedWidget";
 import { useMarkets } from "@/hooks/use-markets";
@@ -289,8 +290,7 @@ export default function HomePage() {
 
       {/* ── Sidebar derecha (solo desktop xl+) ── */}
       <div className="hidden xl:flex flex-col gap-4" style={{ width: 260, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start" }}>
-        <PricesWidget />
-        <StockWidget />
+        <StatsSection />
         <TrendsWidget />
         {/* <LiveFeedWidget /> */}
         <LeaderboardWidget />
