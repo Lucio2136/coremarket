@@ -219,7 +219,15 @@ export function StatsSection() {
       ) : (
         <>
           {/* Bolsa Mexicana */}
-          {stocks.map((s) => (
+          {stocks.map((s) => {
+            const LOGOS: Record<string, string> = {
+              IPC:    "https://logo.clearbit.com/bmv.com.mx",
+              AMXL:   "https://logo.clearbit.com/americamovil.com",
+              FEMSA:  "https://logo.clearbit.com/femsa.com",
+              WALMEX: "https://logo.clearbit.com/walmart.com.mx",
+            };
+            const logoUrl = LOGOS[s.label];
+            return (
             <StatCard
               key={s.label}
               label={s.label}
@@ -227,9 +235,12 @@ export function StatsSection() {
               value={fmtPrice(s.price, s.label)}
               change={s.change}
               closes={s.closes}
-              icon={s.label === "IPC" ? "🇲🇽" : s.label === "AMXL" ? "📱" : "🍺"}
+              icon={logoUrl
+                ? <img src={logoUrl} alt={s.label} style={{ width: 14, height: 14, objectFit: "contain", borderRadius: 3, verticalAlign: "middle" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                : s.label === "IPC" ? "🇲🇽" : s.label === "AMXL" ? "📱" : "🍺"}
             />
-          ))}
+            );
+          })}
 
           {/* Crypto */}
           {cryptos.map((c) => (
