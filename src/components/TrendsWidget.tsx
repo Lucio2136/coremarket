@@ -19,36 +19,58 @@ export function TrendsWidget() {
   const [spinning, setSpinning] = useState(false);
   const [updated,  setUpdated]  = useState<Date | null>(null);
 
+  const parseXml = (xml: string): Trend[] => {
+    const parsed: Trend[] = [];
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match: RegExpExecArray | null;
+    while ((match = itemRegex.exec(xml)) !== null && parsed.length < 15) {
+      const item = match[1];
+      const titleMatch   = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ??
+                           item.match(/<title>(.*?)<\/title>/);
+      const trafficMatch = item.match(/<ht:approx_traffic>(.*?)<\/ht:approx_traffic>/);
+      if (titleMatch) {
+        parsed.push({
+          title:   titleMatch[1].trim(),
+          traffic: trafficMatch ? trafficMatch[1].trim() : null,
+        });
+      }
+    }
+    return parsed;
+  };
+
   const load = async () => {
     setSpinning(true);
     setError(false);
     try {
-      const trendsUrl = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=MX";
-      const proxyUrl  = `https://api.allorigins.win/get?url=${encodeURIComponent(trendsUrl)}`;
+      const TARGET = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=MX";
 
-      const res  = await fetch(proxyUrl, { signal: AbortSignal.timeout(12_000) });
-      const json = await res.json();
-      const xml: string = json.contents ?? "";
-      if (!xml) throw new Error("empty");
+      const PROXIES: (() => Promise<string>)[] = [
+        async () => {
+          const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(TARGET)}`, { signal: AbortSignal.timeout(10_000) });
+          if (!r.ok) throw new Error("corsproxy fail");
+          return r.text();
+        },
+        async () => {
+          const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(TARGET)}`, { signal: AbortSignal.timeout(10_000) });
+          if (!r.ok) throw new Error("allorigins fail");
+          const j = await r.json();
+          return j.contents ?? "";
+        },
+        async () => {
+          const r = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(TARGET)}`, { signal: AbortSignal.timeout(10_000) });
+          if (!r.ok) throw new Error("codetabs fail");
+          return r.text();
+        },
+      ];
 
-      const parsed: Trend[] = [];
-      const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-      let match: RegExpExecArray | null;
-
-      while ((match = itemRegex.exec(xml)) !== null && parsed.length < 15) {
-        const item = match[1];
-        const titleMatch   = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ??
-                             item.match(/<title>(.*?)<\/title>/);
-        const trafficMatch = item.match(/<ht:approx_traffic>(.*?)<\/ht:approx_traffic>/);
-        if (titleMatch) {
-          parsed.push({
-            title:   titleMatch[1].trim(),
-            traffic: trafficMatch ? trafficMatch[1].trim() : null,
-          });
-        }
+      let xml = "";
+      for (const proxy of PROXIES) {
+        try { xml = await proxy(); if (xml.includes("<item>")) break; } catch { /* siguiente */ }
       }
+      if (!xml.includes("<item>")) throw new Error("all proxies failed");
 
-      if (parsed.length === 0) throw new Error("no trends parsed");
+      const parsed = parseXml(xml);
+      if (parsed.length === 0) throw new Error("no items parsed");
       setTrends(parsed);
       setUpdated(new Date());
     } catch {
