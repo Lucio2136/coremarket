@@ -11,11 +11,11 @@ import {
   CheckCircle, XCircle, Trash2, RefreshCw, DollarSign,
   Activity, Clock, Flame, AlertTriangle, ArrowUpRight,
   Landmark, FileText, ArrowDownCircle, Building2, User, ShieldCheck,
-  ShieldAlert, Zap, Pencil, X, PlusCircle, MinusCircle, ScrollText,
+  ShieldAlert, Zap, Pencil, X, PlusCircle, MinusCircle, ScrollText, Sparkles,
 } from "lucide-react";
 
 const ADMIN_EMAILS = ["outfisin@gmail.com"];
-type Tab = "dashboard" | "markets" | "users" | "create" | "treasury" | "withdrawals" | "auditlog" | "historial";
+type Tab = "dashboard" | "markets" | "users" | "create" | "treasury" | "withdrawals" | "auditlog" | "historial" | "borradores";
 
 /** Abreviado solo para ejes de gráficas */
 function fmtMXN(n: number) {
@@ -36,6 +36,7 @@ const SIDEBAR_ITEMS = [
   { key: "markets",     icon: TrendingUp,        label: "Mercados"      },
   { key: "users",       icon: Users,             label: "Usuarios"      },
   { key: "create",      icon: Plus,              label: "Nuevo mercado" },
+  { key: "borradores",  icon: Sparkles,          label: "Borradores IA" },
   { key: "treasury",    icon: Landmark,          label: "Tesorería"     },
   { key: "withdrawals", icon: ArrowDownCircle,   label: "Retiros"       },
   { key: "auditlog",    icon: ScrollText,        label: "Audit Log"     },
@@ -47,6 +48,7 @@ const PAGE_TITLES: Record<Tab, string> = {
   markets:     "Mercados",
   users:       "Usuarios",
   create:      "Nuevo mercado",
+  borradores:  "Borradores IA",
   treasury:    "Tesorería",
   withdrawals: "Gestión de Retiros",
   auditlog:    "Audit Log",
@@ -99,6 +101,7 @@ export default function AdminPage() {
   const [auditResult, setAuditResult]     = useState<any>(null);
   const [auditLog, setAuditLog]           = useState<any[]>([]);
   const [auditLoading, setAuditLoading]   = useState(false);
+  const [generatingMarkets, setGeneratingMarkets] = useState(false);
 
   // Historial
   const [histFilter, setHistFilter] = useState<"all" | "open" | "closed" | "resolved">("all");
@@ -389,6 +392,44 @@ export default function AdminPage() {
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     finally { setActionLoading(null); }
+  };
+
+  const publishDraft = async (marketId: string) => {
+    setActionLoading(marketId + "publish");
+    try {
+      const { error } = await supabase.from("markets").update({ status: "open" }).eq("id", marketId);
+      if (error) throw error;
+      toast.success("Mercado publicado — ya es visible al público");
+      fetchAll();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setActionLoading(null); }
+  };
+
+  const deleteDraft = async (marketId: string) => {
+    if (!confirm("¿Eliminar este borrador?")) return;
+    setActionLoading(marketId + "del");
+    try {
+      const { error } = await supabase.from("markets").delete().eq("id", marketId);
+      if (error) throw error;
+      toast.success("Borrador eliminado");
+      fetchAll();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setActionLoading(null); }
+  };
+
+  const generateWithAI = async () => {
+    setGeneratingMarkets(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-markets");
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${data.count} borradores generados con IA — revísalos antes de publicar`);
+      fetchAll();
+    } catch (err: any) {
+      toast.error(err.message || "Error al generar mercados con IA");
+    } finally {
+      setGeneratingMarkets(false);
+    }
   };
 
   const deleteMarket = async (marketId: string) => {
@@ -3124,6 +3165,224 @@ export default function AdminPage() {
                   );
                 })()}
 
+              </div>
+            );
+          })()}
+
+        </div>
+
+          {/* ══ BORRADORES IA ══ */}
+          {tab === "borradores" && (() => {
+            const drafts = markets.filter((m: any) => m.status === "draft");
+
+            const catTheme: Record<string, { bg: string; color: string; border: string }> = {
+              Entretenimiento: { bg: "#fdf4ff", color: "#7c3aed", border: "#e9d5ff" },
+              Política:        { bg: "#fff7ed", color: "#c2410c", border: "#fed7aa" },
+              Deportes:        { bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe" },
+              Economía:        { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
+              Famosos:         { bg: "#fef9c3", color: "#a16207", border: "#fde68a" },
+              Finanzas:        { bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" },
+              Cultura:         { bg: "#fdf4ff", color: "#9333ea", border: "#e9d5ff" },
+              Tech:            { bg: "#f0f9ff", color: "#0284c7", border: "#bae6fd" },
+            };
+
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>Borradores generados por IA</h2>
+                      {drafts.length > 0 && (
+                        <span style={{
+                          background: "linear-gradient(135deg, #ede9fe, #dbeafe)",
+                          color: "#4f46e5", border: "1.5px solid #c4b5fd",
+                          borderRadius: 20, padding: "2px 12px", fontSize: 12, fontWeight: 700,
+                        }}>
+                          {drafts.length} pendientes
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
+                      Revisa cada predicción antes de publicarla. Los borradores no son visibles al público.
+                    </p>
+                  </div>
+                  <button
+                    onClick={generateWithAI}
+                    disabled={generatingMarkets}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "11px 22px", borderRadius: 10,
+                      background: generatingMarkets
+                        ? "#f1f5f9"
+                        : "linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)",
+                      color: generatingMarkets ? "#94a3b8" : "#fff",
+                      border: "none", fontSize: 13, fontWeight: 700,
+                      cursor: generatingMarkets ? "not-allowed" : "pointer",
+                      boxShadow: generatingMarkets ? "none" : "0 4px 14px rgba(124,58,237,0.35)",
+                      fontFamily: "inherit", whiteSpace: "nowrap",
+                    }}
+                  >
+                    {generatingMarkets
+                      ? <span style={{ display: "inline-block", width: 14, height: 14, borderRadius: "50%", border: "2px solid #cbd5e1", borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
+                      : <Sparkles size={15} />
+                    }
+                    {generatingMarkets ? "Generando con IA..." : "Generar 10 con IA"}
+                  </button>
+                </div>
+
+                {/* Empty state */}
+                {drafts.length === 0 && (
+                  <div style={{
+                    background: "#fff", border: "2px dashed #e2e8f0", borderRadius: 16,
+                    padding: "64px 20px", textAlign: "center",
+                  }}>
+                    <div style={{
+                      width: 60, height: 60, borderRadius: "50%",
+                      background: "linear-gradient(135deg, #ede9fe, #dbeafe)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto 18px",
+                    }}>
+                      <Sparkles size={26} style={{ color: "#7c3aed" }} />
+                    </div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: "0 0 8px" }}>
+                      No hay borradores por revisar
+                    </h3>
+                    <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 24px", maxWidth: 380, marginLeft: "auto", marginRight: "auto" }}>
+                      Haz clic en <strong style={{ color: "#7c3aed" }}>"Generar 10 con IA"</strong> para crear predicciones de morbo mexicano automáticamente. Costarán ~$0.002 USD por corrida.
+                    </p>
+                  </div>
+                )}
+
+                {/* Grid de borradores */}
+                {drafts.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }}>
+                    {drafts.map((m: any) => {
+                      const cat = catTheme[m.category] ?? { bg: "#f8fafc", color: "#64748b", border: "#e2e8f0" };
+                      const yesP = m.yes_percent ?? 50;
+                      const noP  = 100 - yesP;
+                      const isPublishing = actionLoading === m.id + "publish";
+                      const isDeleting   = actionLoading === m.id + "del";
+
+                      return (
+                        <div key={m.id} style={{
+                          background: "#fff",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: 14,
+                          padding: "20px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 14,
+                          boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
+                        }}>
+
+                          {/* Badges top */}
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                              <span style={{
+                                background: cat.bg, color: cat.color, border: `1.5px solid ${cat.border}`,
+                                borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700,
+                              }}>
+                                {m.category}
+                              </span>
+                              <span style={{
+                                background: "#f8fafc", color: "#475569",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 600,
+                              }}>
+                                {m.subject_name}
+                              </span>
+                            </div>
+                            <span style={{
+                              background: "#fefce8", color: "#a16207",
+                              border: "1px solid #fde68a",
+                              borderRadius: 20, padding: "3px 10px", fontSize: 10, fontWeight: 700,
+                              whiteSpace: "nowrap",
+                            }}>
+                              BORRADOR
+                            </span>
+                          </div>
+
+                          {/* Title */}
+                          <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, lineHeight: 1.45 }}>
+                            {m.title}
+                          </h3>
+
+                          {/* Description */}
+                          {m.description && (
+                            <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
+                              {m.description}
+                            </p>
+                          )}
+
+                          {/* Probability bar */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 7 }}>
+                              <span style={{ color: "#16a34a", fontWeight: 700 }}>
+                                SÍ {yesP}% · {(m.yes_odds ?? 2).toFixed(2)}x
+                              </span>
+                              <span style={{ color: "#be123c", fontWeight: 700 }}>
+                                {(m.no_odds ?? 2).toFixed(2)}x · {noP}% NO
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", height: 7, borderRadius: 5, overflow: "hidden" }}>
+                              <div style={{ background: "#22c55e", width: `${yesP}%`, transition: "width 0.3s" }} />
+                              <div style={{ background: "#f43f5e", width: `${noP}%`, transition: "width 0.3s" }} />
+                            </div>
+                          </div>
+
+                          {/* Closes at */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94a3b8" }}>
+                            <Clock size={11} />
+                            Cierra: {m.closes_at
+                              ? new Date(m.closes_at).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })
+                              : "—"}
+                          </div>
+
+                          {/* Divider */}
+                          <div style={{ height: 1, background: "#f1f5f9" }} />
+
+                          {/* Actions */}
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button
+                              onClick={() => publishDraft(m.id)}
+                              disabled={!!actionLoading}
+                              style={{
+                                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                padding: "10px 14px", borderRadius: 8,
+                                background: isPublishing ? "#dcfce7" : "#16a34a",
+                                color: isPublishing ? "#15803d" : "#fff",
+                                border: "none", fontSize: 12, fontWeight: 700,
+                                cursor: actionLoading ? "not-allowed" : "pointer",
+                                fontFamily: "inherit",
+                              }}
+                            >
+                              <CheckCircle size={13} />
+                              {isPublishing ? "Publicando..." : "Publicar"}
+                            </button>
+                            <button
+                              onClick={() => deleteDraft(m.id)}
+                              disabled={!!actionLoading}
+                              style={{
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                padding: "10px 14px", borderRadius: 8,
+                                background: "#fff", color: "#dc2626",
+                                border: "1.5px solid #fecaca",
+                                fontSize: 12, fontWeight: 700,
+                                cursor: actionLoading ? "not-allowed" : "pointer",
+                                fontFamily: "inherit",
+                              }}
+                            >
+                              <Trash2 size={13} />
+                              {isDeleting ? "..." : "Eliminar"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })()}
