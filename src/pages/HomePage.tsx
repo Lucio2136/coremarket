@@ -215,13 +215,6 @@ export default function HomePage() {
   return (
     <div className="space-y-5">
 
-    {/* ── Hero / Featured (solo desktop, sin filtros activos) ── */}
-    {!loading && markets.length > 0 && !cat && !q && (
-      <div className="hidden xl:block">
-        <FeaturedSection markets={markets} />
-      </div>
-    )}
-
     <div className="flex gap-7 items-start">
       {/* ── Columna principal ── */}
       <div className="flex-1 min-w-0 space-y-4">
