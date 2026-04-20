@@ -216,15 +216,6 @@ export default function HomePage() {
     <div className="space-y-5">
 
     <div className="flex gap-7 items-start">
-      {/* ── Sidebar izquierda (solo desktop xl+) ── */}
-      <div className="hidden xl:flex flex-col gap-4" style={{ width: 260, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start" }}>
-        <StatsSection />
-        <TrendsWidget />
-        {/* <LiveFeedWidget /> */}
-        <LeaderboardWidget />
-        <NewsPanel />
-      </div>
-
       {/* ── Columna principal — MERCADOS ── */}
       <div className="flex-1 min-w-0 space-y-4">
       {/* Cabecera de sección */}
@@ -289,6 +280,14 @@ export default function HomePage() {
         </div>
       )}
       </div>{/* fin columna principal */}
+
+      {/* ── Sidebar derecha (solo desktop xl+) ── */}
+      <div className="hidden xl:flex flex-col gap-4" style={{ width: 260, flexShrink: 0, position: "sticky", top: 80, alignSelf: "flex-start" }}>
+        <StatsSection />
+        <TrendsWidget />
+        <LeaderboardWidget />
+        <NewsPanel />
+      </div>
 
     </div>
     </div>
