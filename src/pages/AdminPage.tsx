@@ -500,7 +500,7 @@ export default function AdminPage() {
       // Mezcla aleatoria y toma 10
       const shuffled = [...TEMPLATES].sort(() => Math.random() - 0.5).slice(0, 10);
 
-      const toInsert = shuffled.map((t) => ({
+      const toInsert = shuffled.map(({ no_percent: _np, ...t }) => ({
         ...t,
         market_type: "binary",
         total_pool: 0,
