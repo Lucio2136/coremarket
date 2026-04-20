@@ -3169,8 +3169,6 @@ export default function AdminPage() {
             );
           })()}
 
-        </div>
-
           {/* ══ BORRADORES IA ══ */}
           {tab === "borradores" && (() => {
             const drafts = markets.filter((m: any) => m.status === "draft");
