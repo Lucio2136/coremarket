@@ -35,7 +35,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ open, onOpenChange }
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      const res = await fetch(`${supabaseUrl}/functions/v1/create-conekta-order`, {
+      const res = await fetch(`${supabaseUrl}/functions/v1/create-mp-preference`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -191,7 +191,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ open, onOpenChange }
 
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center flex items-center justify-center gap-1.5 -mt-2 pb-1">
                   <Shield size={11} />
-                  Pago procesado de forma segura por Conekta
+                  Pago procesado de forma segura por Mercado Pago
                 </p>
 
               </div>
