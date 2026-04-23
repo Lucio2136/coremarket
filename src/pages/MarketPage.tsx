@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
+import { ShareModal } from "@/components/modals/ShareModal";
 import {
   ArrowLeft, Users, Lock, TrendingUp, Share2, Wallet, AlertCircle,
   CheckCircle2, XCircle, Trophy, Activity, LineChart,
@@ -1049,6 +1050,7 @@ export default function MarketPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [authOpen, setAuthOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Permite que MarketComments abra el modal de auth vía evento custom
   useEffect(() => {
@@ -1093,11 +1095,7 @@ export default function MarketPage() {
   const yesPrice = (yesP / 100).toFixed(2);
   const noPrice  = (noP  / 100).toFixed(2);
 
-  const handleShare = () => {
-    const url = window.location.href;
-    if (navigator.share) navigator.share({ title: market.title, url }).catch(() => {});
-    else navigator.clipboard.writeText(url).then(() => toast.success("Enlace copiado"));
-  };
+  const handleShare = () => setShareOpen(true);
 
   return (
     <>
@@ -1515,6 +1513,13 @@ export default function MarketPage() {
       </div>
 
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={market.title}
+        yesPercent={yesP}
+        marketId={id!}
+      />
     </>
   );
 }

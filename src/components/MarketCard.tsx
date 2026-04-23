@@ -1,10 +1,11 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Market } from "@/lib/supabase";
-import { Users, Lock, Clock, Share2, Check, Bookmark, ArrowUpDown } from "lucide-react";
+import { Users, Lock, Clock, Share2, Bookmark, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import type { UserMarketPosition } from "@/hooks/use-user-positions";
 import { Button } from "@/components/ui/button";
+import { ShareModal } from "@/components/modals/ShareModal";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,7 @@ export const MarketCard = memo(function MarketCard({
 }: MarketCardProps) {
   const navigate   = useNavigate();
   const countdown  = useCountdown(market.closes_at);
-  const [copied, setCopied]   = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [picked, setPicked]   = useState<"yes" | "no" | null>(null);
 
@@ -191,12 +192,8 @@ export const MarketCard = memo(function MarketCard({
 
   const handleShare = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(`${window.location.origin}/market/${market.id}`).then(() => {
-      setCopied(true);
-      toast.success("Enlace copiado");
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }, [market.id]);
+    setShareOpen(true);
+  }, []);
 
   const activeSide = picked ?? userPosition?.side ?? null;
 
@@ -429,6 +426,13 @@ export const MarketCard = memo(function MarketCard({
         </div>
         </div>
       </footer>
+      <ShareModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={market.title}
+        yesPercent={market.yes_percent ?? 50}
+        marketId={market.id}
+      />
     </div>
   );
 });
