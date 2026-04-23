@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, TrendingUp, DollarSign, CheckCircle, HelpCircle, ArrowRight, BarChart2, ShieldCheck, CreditCard } from "lucide-react";
 
@@ -191,6 +192,12 @@ export default function FAQPage() {
     : SECTIONS;
 
   return (
+    <>
+    <SEOHead
+      title="Preguntas Frecuentes"
+      description="¿Cómo funciona Lucebase? Aprende a predecir, apostar y ganar pesos mexicanos en mercados de predicción. Guía completa."
+      url="/faq"
+    />
     <div className="max-w-2xl mx-auto space-y-8 pb-12">
 
       {/* ── Header ── */}
@@ -330,5 +337,6 @@ export default function FAQPage() {
       </div>
 
     </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { useLeaderboard } from "@/hooks/use-leaderboard";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { Trophy, Loader2, AlertCircle } from "lucide-react";
 
 const AVATAR_GRADIENTS: Record<string, string> = {
@@ -43,6 +44,12 @@ export default function LeaderboardPage() {
   const rest     = entries.slice(3);
 
   return (
+    <>
+    <SEOHead
+      title="Tabla de Líderes"
+      description="Los mejores predictores de Lucebase. Ranking de usuarios con más ganancias en mercados de predicción con pesos mexicanos."
+      url="/leaderboard"
+    />
     <div className="max-w-xl mx-auto space-y-5">
 
       {/* Encabezado */}
@@ -143,5 +150,6 @@ export default function LeaderboardPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

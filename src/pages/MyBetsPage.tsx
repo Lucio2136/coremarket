@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { useMyBets } from "@/hooks/use-my-bets";
 import { useMarkets } from "@/hooks/use-markets";
 import { useAuth } from "@/context/AuthContext";
@@ -271,6 +272,8 @@ export default function MyBetsPage() {
   const visible = filter === "all" ? bets : bets.filter((b: any) => b.status === filter);
 
   return (
+    <>
+    <SEOHead title="Mis Predicciones" url="/my-bets" noIndex={true} />
     <div className="max-w-2xl mx-auto space-y-5">
 
       {/* Encabezado */}
@@ -477,5 +480,6 @@ export default function MyBetsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

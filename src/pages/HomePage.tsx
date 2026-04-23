@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { AlertCircle, RefreshCw, TrendingUp, DollarSign, CheckCircle, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { MarketCard } from "@/components/MarketCard";
 import { NewsPanel } from "@/components/NewsPanel";
@@ -164,6 +165,7 @@ function MarketCardSkeleton({ className = "" }: { className?: string }) {
 
 export default function HomePage() {
   const { markets, loading, error, refetch } = useMarkets();
+  // SEO rendered at top of component
   const userPositions = useUserPositions();
   const { saved, isSaved, toggleSave } = useSavedMarkets();
   const [searchParams] = useSearchParams();
@@ -213,6 +215,11 @@ export default function HomePage() {
   }
 
   return (
+    <>
+    <SEOHead
+      description="Predice lo que figuras públicas dirán o harán. Mercados de predicción en tiempo real con pesos mexicanos. Política, deportes, entretenimiento y más."
+      url="/"
+    />
     <div className="space-y-5">
 
     <div className="flex gap-7 items-start">
@@ -291,5 +298,6 @@ export default function HomePage() {
 
     </div>
     </div>
+    </>
   );
 }

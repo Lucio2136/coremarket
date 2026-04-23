@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import {
   ArrowLeft, Users, Lock, TrendingUp, Share2, Wallet, AlertCircle,
   CheckCircle2, XCircle, Trophy, Activity, LineChart,
@@ -1100,6 +1101,11 @@ export default function MarketPage() {
 
   return (
     <>
+      <SEOHead
+        title={market.title}
+        description={`¿${market.title}? Predice el resultado en Lucebase. Sí: ${yesP}% · No: ${noP}%. Apuesta con pesos mexicanos.`}
+        url={`/market/${id}`}
+      />
       <div className="max-w-[1100px] mx-auto px-4 py-4 md:py-6">
 
         {/* Back */}
