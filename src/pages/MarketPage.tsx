@@ -1519,6 +1519,7 @@ export default function MarketPage() {
         title={market.title}
         yesPercent={yesP}
         marketId={id!}
+        slug={market.slug}
       />
     </>
   );

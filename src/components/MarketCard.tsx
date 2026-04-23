@@ -182,13 +182,14 @@ export const MarketCard = memo(function MarketCard({
     }
   }, [yesP]);
 
-  const handleOpen = useCallback(() => navigate(`/market/${market.id}`), [navigate, market.id]);
+  const marketPath = market.slug || market.id;
+  const handleOpen = useCallback(() => navigate(`/market/${marketPath}`), [navigate, marketPath]);
 
   const handleBuy = useCallback((e: React.MouseEvent, side: "yes" | "no") => {
     e.stopPropagation();
     setPicked(side);
-    navigate(`/market/${market.id}?side=${side}`);
-  }, [navigate, market.id]);
+    navigate(`/market/${marketPath}?side=${side}`);
+  }, [navigate, marketPath]);
 
   const handleShare = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -309,7 +310,7 @@ export const MarketCard = memo(function MarketCard({
             <span style={{ fontSize: 10, fontWeight: 700, color: "#93C5FD", fontVariantNumeric: "tabular-nums" }}>{market.scalar_max ?? 100}</span>
           </div>
           {!isClosed && (
-            <Button variant="cta" onClick={(e) => { e.stopPropagation(); navigate(`/market/${market.id}`); }} style={{ marginTop: 8 }}>
+            <Button variant="cta" onClick={(e) => { e.stopPropagation(); navigate(`/market/${marketPath}`); }} style={{ marginTop: 8 }}>
               Predecir rango
             </Button>
           )}
@@ -341,11 +342,11 @@ export const MarketCard = memo(function MarketCard({
                 {!isClosed ? (
                   <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/market/${market.id}?option=${opt.id}&side=yes`); }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/market/${marketPath}?option=${opt.id}&side=yes`); }}
                       style={{ padding: "4px 9px", borderRadius: 7, border: 0, fontSize: 11, fontWeight: 700, cursor: "pointer", background: "#ECFDF5", color: "#047857", fontFamily: "inherit" }}
                     >Sí</button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/market/${market.id}?option=${opt.id}&side=no`); }}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/market/${marketPath}?option=${opt.id}&side=no`); }}
                       style={{ padding: "4px 9px", borderRadius: 7, border: 0, fontSize: 11, fontWeight: 700, cursor: "pointer", background: "#FFF1F2", color: "#BE123C", fontFamily: "inherit" }}
                     >No</button>
                   </div>
@@ -432,6 +433,7 @@ export const MarketCard = memo(function MarketCard({
         title={market.title}
         yesPercent={market.yes_percent ?? 50}
         marketId={market.id}
+        slug={market.slug}
       />
     </div>
   );

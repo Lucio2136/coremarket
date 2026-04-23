@@ -7,14 +7,15 @@ interface ShareModalProps {
   title: string;
   yesPercent: number;
   marketId: string;
+  slug?: string | null;
 }
 
-export function ShareModal({ open, onClose, title, yesPercent, marketId }: ShareModalProps) {
+export function ShareModal({ open, onClose, title, yesPercent, marketId, slug }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
 
   if (!open) return null;
 
-  const url = `https://www.lucebase.com/market/${marketId}`;
+  const url = `https://www.lucebase.com/market/${slug || marketId}`;
   const noPercent = 100 - yesPercent;
   const text = `¿${title}?\n\nSí: ${yesPercent}% · No: ${noPercent}%\n\nPredice en Lucebase 🔮`;
 
@@ -66,7 +67,7 @@ export function ShareModal({ open, onClose, title, yesPercent, marketId }: Share
           <br />
           Sí: {yesPercent}% · No: {noPercent}%
           <br />
-          <span className="text-blue-500">lucebase.com/market/{marketId.slice(0, 8)}...</span>
+          <span className="text-blue-500">lucebase.com/market/{slug || marketId.slice(0, 8) + "..."}</span>
         </div>
 
         {/* Botones */}

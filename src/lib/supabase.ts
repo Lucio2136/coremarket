@@ -77,6 +77,7 @@ export interface Market {
   description: string | null;
   rules: string | null;
   created_at: string;
+  slug: string | null;
   // Embedded from join — populated by hooks
   market_options?: MarketOption[];
 }
