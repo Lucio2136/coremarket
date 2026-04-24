@@ -4,7 +4,6 @@ import {
   LogIn, LogOut, User, BarChart2, Gift, Bell,
   TrendingUp, Flame, Sparkles, Search, ChevronDown,
   CheckCircle, XCircle, ArrowUpCircle, Trophy, Clock, HelpCircle, Bookmark, LineChart,
-  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSavedMarkets } from "@/hooks/use-saved-markets";
@@ -42,7 +41,6 @@ export function AppHeader() {
   const [referralOpen, setReferralOpen] = useState(false);
   const [searchVal, setSearchVal]       = useState("");
   const [searchOpen, setSearchOpen]     = useState(false);
-  const [filterOpen, setFilterOpen]     = useState(false);
   const [notifOpen, setNotifOpen]       = useState(false);
   const [avatarOpen, setAvatarOpen]     = useState(false);
   const notifRef  = useRef<HTMLDivElement>(null);
@@ -213,130 +211,6 @@ export function AppHeader() {
                     {savedCount > 99 ? "99+" : savedCount}
                   </span>
                 )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Fila 3 móvil — Buscador siempre visible */}
-        <div className="sm:hidden px-3 py-2">
-          <form onSubmit={handleSearch} className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                value={searchVal}
-                onChange={(e) => setSearchVal(e.target.value)}
-                placeholder="Buscar"
-                className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl pl-9 pr-4 py-2.5 text-[14px] text-gray-700 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none transition-all"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setFilterOpen((v) => !v)}
-              className={`p-2.5 rounded-xl shrink-0 transition-colors ${
-                filterOpen
-                  ? "text-gray-900 dark:text-gray-100 bg-gray-200 dark:bg-gray-700"
-                  : "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800"
-              }`}
-              aria-label="Filtros"
-            >
-              <SlidersHorizontal size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => selectCat(activeCat === "saved" ? "" : "saved")}
-              className={`p-2.5 rounded-xl shrink-0 transition-colors ${
-                activeCat === "saved"
-                  ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                  : "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800"
-              }`}
-              aria-label="Guardados"
-            >
-              <Bookmark size={16} className={activeCat === "saved" ? "fill-amber-400" : ""} />
-            </button>
-          </form>
-        </div>
-
-        {/* Fila 3b móvil — Panel de filtros expandible */}
-        {filterOpen && (
-          <div className="sm:hidden px-3 pb-3 space-y-3">
-            {/* Ordenar por */}
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ordenar por</p>
-              <div className="flex flex-wrap gap-1.5">
-                {SPECIAL.map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => { selectCat(id); setFilterOpen(false); }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
-                      activeCat === id
-                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                    }`}
-                  >
-                    <Icon size={12} />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* Categoría */}
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Categoría</p>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={() => { navigate("/"); setFilterOpen(false); }}
-                  className={`px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
-                    !activeCat || SPECIAL.some((s) => s.id === activeCat)
-                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                  }`}
-                >
-                  Todos
-                </button>
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => { selectCat(cat); setFilterOpen(false); }}
-                    className={`px-3 py-1.5 rounded-xl text-[13px] font-medium transition-colors ${
-                      activeCat === cat
-                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Fila 4 móvil — Chips de categorías */}
-        <div className="sm:hidden overflow-x-auto scrollbar-hide pb-3" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="flex items-center px-3 gap-2 whitespace-nowrap min-w-max">
-            <button
-              onClick={() => navigate("/")}
-              className={`px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
-                !activeCat || activeCat === "" || SPECIAL.some((s) => s.id === activeCat)
-                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
-                  : "text-gray-500 dark:text-gray-400"
-              }`}
-            >
-              Todos
-            </button>
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => selectCat(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-[13px] font-medium transition-colors ${
-                  activeCat === cat
-                    ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold"
-                    : "text-gray-500 dark:text-gray-400"
-                }`}
-              >
-                {cat}
               </button>
             ))}
           </div>

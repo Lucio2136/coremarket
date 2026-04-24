@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
-import { AlertCircle, RefreshCw, TrendingUp, DollarSign, CheckCircle, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import { AlertCircle, RefreshCw, TrendingUp, DollarSign, CheckCircle, ChevronDown, ChevronUp, Lightbulb, Search, SlidersHorizontal, Bookmark, TrendingUp as TrendUp, Sparkles, Flame, Clock } from "lucide-react";
 import { MarketCard } from "@/components/MarketCard";
 import { NewsPanel } from "@/components/NewsPanel";
 import { PricesWidget } from "@/components/PricesWidget";
@@ -163,12 +163,27 @@ function MarketCardSkeleton({ className = "" }: { className?: string }) {
   );
 }
 
+const CATEGORIES = [
+  "Morbo", "Política", "Deportes", "Entretenimiento", "Finanzas",
+  "Tech", "Música", "Negocios", "Elecciones", "Redes", "Cultura",
+];
+
+const SPECIAL_FILTERS = [
+  { id: "trending", label: "Tendencia", icon: TrendUp },
+  { id: "new",      label: "Nuevo",     icon: Sparkles },
+  { id: "hot",      label: "Popular",   icon: Flame },
+  { id: "closing",  label: "Cierra pronto", icon: Clock },
+];
+
 export default function HomePage() {
   const { markets, loading, error, refetch } = useMarkets();
   // SEO rendered at top of component
   const userPositions = useUserPositions();
   const { saved, isSaved, toggleSave } = useSavedMarkets();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [mobileSearch, setMobileSearch] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const cat = searchParams.get("cat") ?? "";
   const q   = searchParams.get("q")?.toLowerCase() ?? "";
@@ -221,6 +236,139 @@ export default function HomePage() {
       url="/"
     />
     <div className="space-y-5">
+
+    {/* ── Buscador + chips — solo móvil, fluye con el contenido ── */}
+    <div className="sm:hidden space-y-2">
+
+      {/* Búsqueda */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (mobileSearch.trim()) navigate(`/?q=${encodeURIComponent(mobileSearch.trim())}`);
+          else navigate("/");
+        }}
+        className="flex items-center gap-2"
+      >
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            value={mobileSearch}
+            onChange={(e) => setMobileSearch(e.target.value)}
+            placeholder="Buscar mercados..."
+            className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl pl-9 pr-4 py-2.5 text-[14px] text-gray-700 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setFilterOpen((v) => !v)}
+          className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+            filterOpen
+              ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+          }`}
+        >
+          <SlidersHorizontal size={16} />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (cat === "saved") navigate("/");
+            else navigate("/?cat=saved");
+          }}
+          className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+            cat === "saved"
+              ? "bg-amber-50 dark:bg-amber-900/20 text-amber-500"
+              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+          }`}
+        >
+          <Bookmark size={16} className={cat === "saved" ? "fill-amber-400" : ""} />
+        </button>
+      </form>
+
+      {/* Panel de filtros expandible */}
+      {filterOpen && (
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-3 space-y-3">
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Ordenar por</p>
+            <div className="flex flex-wrap gap-1.5">
+              {SPECIAL_FILTERS.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => { navigate(cat === id ? "/" : `/?cat=${id}`); setFilterOpen(false); }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
+                    cat === id
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                      : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                  }`}
+                >
+                  <Icon size={12} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="h-px bg-gray-200 dark:bg-gray-700" />
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Categoría</p>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => { navigate("/"); setFilterOpen(false); }}
+                className={`px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
+                  !cat || SPECIAL_FILTERS.some((s) => s.id === cat)
+                    ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                }`}
+              >
+                Todos
+              </button>
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => { navigate(cat === c ? "/" : `/?cat=${encodeURIComponent(c)}`); setFilterOpen(false); }}
+                  className={`px-3 py-1.5 rounded-xl text-[13px] font-medium transition-colors ${
+                    cat === c
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold"
+                      : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chips de categoría — scroll horizontal */}
+      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="flex items-center gap-2 whitespace-nowrap min-w-max pb-1">
+          <button
+            onClick={() => navigate("/")}
+            className={`px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
+              !cat || SPECIAL_FILTERS.some((s) => s.id === cat)
+                ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            Todos
+          </button>
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => navigate(cat === c ? "/" : `/?cat=${encodeURIComponent(c)}`)}
+              className={`px-3.5 py-1.5 rounded-xl text-[13px] font-medium transition-colors ${
+                cat === c
+                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold"
+                  : "text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
 
     <div className="flex gap-7 items-start">
       {/* ── Columna principal — MERCADOS ── */}
