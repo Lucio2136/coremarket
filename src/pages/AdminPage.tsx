@@ -616,7 +616,6 @@ export default function AdminPage() {
         if (error) throw error;
         marketRow = data;
       }
-      if (error) throw error;
 
       // Si es mercado múltiple, insertar las opciones
       if (newMarket.market_type === "multiple" && marketRow?.id) {
