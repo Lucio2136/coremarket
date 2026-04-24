@@ -132,22 +132,19 @@ export default function AdminPage() {
 
   // ── Wikipedia helpers ─────────────────────────────────────────────────────
   const fetchWikiPhoto = async (name: string): Promise<string | null> => {
-    const slug = encodeURIComponent(name.trim().replace(/ /g, "_"));
+    const title = name.trim();
     const tryLang = async (lang: "es" | "en") => {
       try {
-        const res = await fetch(
-          `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${slug}`,
-          { signal: AbortSignal.timeout(5000) }
-        );
+        // Usar MediaWiki action API con origin=* para CORS explícito
+        const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
         if (!res.ok) return null;
         const data = await res.json();
-        // Prefer full-resolution original; fall back to thumbnail upscaled to 800px
-        if (data?.originalimage?.source) return data.originalimage.source as string;
-        if (data?.thumbnail?.source) {
-          // Wikipedia thumbnail URLs support size substitution (e.g. 220px → 800px)
-          return (data.thumbnail.source as string).replace(/\/\d+px-/, "/800px-");
-        }
-        return null;
+        const pages = data?.query?.pages;
+        if (!pages) return null;
+        const page = Object.values(pages)[0] as any;
+        if (!page || page.missing !== undefined) return null;
+        return (page?.thumbnail?.source as string) ?? null;
       } catch { return null; }
     };
     return (await tryLang("es")) ?? (await tryLang("en"));
