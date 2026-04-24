@@ -66,6 +66,17 @@ const KPI_THEMES = [
 
 const CHART_COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe", "#eff6ff", "#f8fafc"];
 
+const CATEGORY_CFG: Record<string, { emoji: string; color: string; bg: string; hint: string }> = {
+  "Política":        { emoji: "🏛️",  color: "#7c3aed", bg: "#f5f3ff", hint: "Políticos, decisiones de gobierno, reformas y más..." },
+  "Entretenimiento": { emoji: "🎭",  color: "#db2777", bg: "#fdf2f8", hint: "Artistas, música, series, celebridades, redes..." },
+  "Deportes":        { emoji: "⚽",  color: "#16a34a", bg: "#f0fdf4", hint: "Fútbol, boxeo, F1, Selección Mexicana, clubes..." },
+  "Finanzas":        { emoji: "💰",  color: "#d97706", bg: "#fffbeb", hint: "Dólar, criptomonedas, bolsa, Banxico, economía..." },
+  "Negocios":        { emoji: "💼",  color: "#0369a1", bg: "#f0f9ff", hint: "Empresas, inversiones, nearshoring, emprendimiento..." },
+  "Tech":            { emoji: "💻",  color: "#0891b2", bg: "#ecfeff", hint: "IA, startups, apps, innovación tecnológica..." },
+  "Cultura":         { emoji: "🎨",  color: "#9333ea", bg: "#faf5ff", hint: "Arte, gastronomía, tradiciones, fenómenos sociales..." },
+  "Elecciones":      { emoji: "🗳️", color: "#b91c1c", bg: "#fff1f2", hint: "Candidatos, encuestas, resultados electorales..." },
+};
+
 function ChartTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -105,6 +116,14 @@ export default function AdminPage() {
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
 
   // Historial
+  const [marketCatFilter, setMarketCatFilter] = useState<string>("Todas");
+  const [collapsedCats, setCollapsedCats]     = useState<Set<string>>(new Set());
+  const toggleCat = (cat: string) => setCollapsedCats((prev) => {
+    const next = new Set(prev);
+    next.has(cat) ? next.delete(cat) : next.add(cat);
+    return next;
+  });
+
   const [histFilter, setHistFilter] = useState<"all" | "open" | "closed" | "resolved">("all");
   const [histSearch, setHistSearch] = useState("");
   const [histSort,   setHistSort]   = useState<"pool" | "bettors" | "date">("date");
@@ -1336,20 +1355,67 @@ export default function AdminPage() {
           )}
 
           {/* ══ MERCADOS ══ */}
-          {tab === "markets" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {loadingData && (
-                <div style={{ textAlign: "center", padding: "64px 0", color: "#94a3b8", fontSize: 13 }}>
-                  Cargando mercados...
-                </div>
-              )}
-              {!loadingData && markets.length === 0 && (
-                <div style={{ textAlign: "center", padding: "64px 0", color: "#cbd5e1", fontSize: 13 }}>
-                  Sin mercados todavía.
-                </div>
-              )}
-              {markets.map((market) => {
-                const isOpen = market.status === "open";
+          {tab === "markets" && (() => {
+            // Categorías presentes en los mercados
+            const allCats = Array.from(new Set(markets.map((m) => m.category).filter(Boolean))) as string[];
+            const filteredMarkets = marketCatFilter === "Todas" ? markets : markets.filter((m) => m.category === marketCatFilter);
+            // Agrupa por categoría respetando el filtro
+            const groups: Record<string, typeof markets> = {};
+            filteredMarkets.forEach((m) => {
+              const cat = m.category || "Sin categoría";
+              if (!groups[cat]) groups[cat] = [];
+              groups[cat].push(m);
+            });
+            return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {/* ── Filtro por categoría ── */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {["Todas", ...allCats].map((cat) => {
+                  const cfg = CATEGORY_CFG[cat];
+                  const active = marketCatFilter === cat;
+                  return (
+                    <button key={cat} type="button" onClick={() => setMarketCatFilter(cat)} style={{
+                      padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+                      cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
+                      border: active ? `1.5px solid ${cfg?.color ?? "#0f172a"}` : "1.5px solid #e8ecf0",
+                      background: active ? (cfg?.bg ?? "#f1f5f9") : "#fff",
+                      color: active ? (cfg?.color ?? "#0f172a") : "#64748b",
+                    }}>
+                      {cfg?.emoji ?? "📦"} {cat} {cat !== "Todas" && <span style={{ opacity: .6 }}>({(groups[cat] ?? markets.filter(m => m.category === cat)).length})</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {loadingData && <div style={{ textAlign: "center", padding: "64px 0", color: "#94a3b8", fontSize: 13 }}>Cargando mercados...</div>}
+              {!loadingData && filteredMarkets.length === 0 && <div style={{ textAlign: "center", padding: "64px 0", color: "#cbd5e1", fontSize: 13 }}>Sin mercados en esta categoría.</div>}
+
+              {/* ── Grupos por categoría ── */}
+              {Object.entries(groups).map(([cat, catMarkets]) => {
+                const cfg = CATEGORY_CFG[cat] ?? { emoji: "📦", color: "#64748b", bg: "#f1f5f9", hint: "" };
+                const collapsed = collapsedCats.has(cat);
+                const openCount = catMarkets.filter(m => m.status === "open").length;
+                const catPool   = catMarkets.reduce((s, m) => s + (m.total_pool || 0), 0);
+                return (
+                  <div key={cat} style={{ borderRadius: 14, border: `1.5px solid ${cfg.color}22`, overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
+                    {/* Cabecera de categoría */}
+                    <button type="button" onClick={() => toggleCat(cat)} style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 10,
+                      padding: "13px 18px", background: cfg.bg,
+                      border: "none", cursor: "pointer", textAlign: "left",
+                      borderBottom: collapsed ? "none" : `1px solid ${cfg.color}22`,
+                    }}>
+                      <span style={{ fontSize: 18 }}>{cfg.emoji}</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: cfg.color, flex: 1 }}>{cat}</span>
+                      <span style={{ fontSize: 11, color: cfg.color, opacity: .7, fontWeight: 600 }}>
+                        {openCount} activo{openCount !== 1 ? "s" : ""} · {catMarkets.length} total · {fmtExact(catPool)}
+                      </span>
+                      <span style={{ fontSize: 11, color: cfg.color, marginLeft: 6 }}>{collapsed ? "▶" : "▼"}</span>
+                    </button>
+
+                    {/* Lista de mercados de la categoría */}
+                    {!collapsed && catMarkets.map((market) => {
+                      const isOpen = market.status === "open";
                 return (
                   <div key={market.id} style={{
                     background: "#fff", borderRadius: 14,
@@ -1669,7 +1735,11 @@ export default function AdminPage() {
                 );
               })}
             </div>
-          )}
+          );
+        })}
+      </div>
+    );
+  })()}
 
           {/* ══ USUARIOS ══ */}
           {tab === "users" && (
@@ -1927,42 +1997,51 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
-                      Sujeto *
-                    </label>
-                    <input
-                      value={newMarket.subject_name}
-                      onChange={(e) => setNewMarket({ ...newMarket, subject_name: e.target.value })}
-                      placeholder="Donald Trump"
-                      style={{
-                        width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
-                        padding: "9px 14px", fontSize: 13, color: "#0f172a",
-                        background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit",
-                      }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
-                    />
+                {/* Categoría — pills visuales */}
+                <div>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
+                    Categoría
+                  </label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 8 }}>
+                    {Object.entries(CATEGORY_CFG).map(([cat, cfg]) => {
+                      const active = newMarket.category === cat;
+                      return (
+                        <button key={cat} type="button" onClick={() => setNewMarket({ ...newMarket, category: cat })} style={{
+                          padding: "7px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+                          cursor: "pointer", fontFamily: "inherit", transition: "all .15s",
+                          border: active ? `1.5px solid ${cfg.color}` : "1.5px solid #e8ecf0",
+                          background: active ? cfg.bg : "#fff",
+                          color: active ? cfg.color : "#64748b",
+                        }}>
+                          {cfg.emoji} {cat}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
-                      Categoría
-                    </label>
-                    <select
-                      value={newMarket.category}
-                      onChange={(e) => setNewMarket({ ...newMarket, category: e.target.value })}
-                      style={{
-                        width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
-                        padding: "9px 14px", fontSize: 13, color: "#0f172a",
-                        background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit",
-                      }}
-                    >
-                      {["Política","Negocios","Entretenimiento","Deportes","Tech","Finanzas","Cultura","Elecciones"].map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {CATEGORY_CFG[newMarket.category] && (
+                    <p style={{ fontSize: 11, color: CATEGORY_CFG[newMarket.category].color, margin: 0, fontWeight: 500, opacity: 0.8 }}>
+                      {CATEGORY_CFG[newMarket.category].hint}
+                    </p>
+                  )}
+                </div>
+
+                {/* Sujeto */}
+                <div>
+                  <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
+                    Sujeto *
+                  </label>
+                  <input
+                    value={newMarket.subject_name}
+                    onChange={(e) => setNewMarket({ ...newMarket, subject_name: e.target.value })}
+                    placeholder="Donald Trump"
+                    style={{
+                      width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
+                      padding: "9px 14px", fontSize: 13, color: "#0f172a",
+                      background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
+                  />
                 </div>
 
                 {/* Foto del sujeto */}
