@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { getSubjectPhoto } from "@/data/subject-photos";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid,
 } from "recharts";
@@ -132,10 +133,14 @@ export default function AdminPage() {
 
   // ── Wikipedia helpers ─────────────────────────────────────────────────────
   const fetchWikiPhoto = async (name: string): Promise<string | null> => {
+    // 1. Buscar en mapa local primero (sin fetch, sin CSP, instantáneo)
+    const local = getSubjectPhoto(name);
+    if (local) return local;
+
+    // 2. Fallback: MediaWiki action API con origin=* para CORS explícito
     const title = name.trim();
     const tryLang = async (lang: "es" | "en") => {
       try {
-        // Usar MediaWiki action API con origin=* para CORS explícito
         const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
         const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
         if (!res.ok) return null;
