@@ -74,7 +74,7 @@ function ChartTooltip({ active, payload }: any) {
       boxShadow: "0 8px 24px rgba(0,0,0,0.18)", fontSize: 12,
     }}>
       <p style={{ color: "#94a3b8", marginBottom: 2, margin: "0 0 3px" }}>{payload[0]?.payload?.name}</p>
-      <p style={{ color: "#fff", fontWeight: 700, margin: 0 }}>${payload[0]?.value?.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</p>
+      <p className="admin-num" style={{ color: "#fff", fontWeight: 600, margin: 0 }}>${payload[0]?.value?.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</p>
     </div>
   );
 }
@@ -897,7 +897,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f0f4f8", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ══ Sidebar ══ */}
       <aside style={{
@@ -1133,7 +1133,7 @@ export default function AdminPage() {
                           <Icon size={17} color={theme.iconBg} />
                         </div>
                       </div>
-                      <p style={{ fontSize: 24, fontWeight: 800, color: theme.numColor, lineHeight: 1, margin: 0, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
+                      <p className="admin-num" style={{ fontSize: 22, fontWeight: 600, color: theme.numColor, lineHeight: 1, margin: 0 }}>
                         {value}
                       </p>
                       <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 6, margin: "6px 0 0" }}>
@@ -1202,7 +1202,7 @@ export default function AdminPage() {
                             <p style={{ flex: 1, fontSize: 12, fontWeight: 600, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
                               {u.username || "—"}
                             </p>
-                            <p style={{ fontSize: 12, fontWeight: 700, color: "#059669", fontVariantNumeric: "tabular-nums", margin: 0 }}>
+                            <p className="admin-num" style={{ fontSize: 12, fontWeight: 600, color: "#059669", margin: 0 }}>
                               ${(u.balance_mxn || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                           </div>
@@ -1714,11 +1714,11 @@ export default function AdminPage() {
                           </div>
                         </td>
                         <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                          <span style={{ fontSize: 13, fontWeight: 800, color: "#059669", fontVariantNumeric: "tabular-nums", background: "#dcfce7", padding: "3px 8px", borderRadius: 6 }}>
+                          <span className="admin-num" style={{ fontSize: 13, fontWeight: 600, color: "#059669", background: "#dcfce7", padding: "3px 8px", borderRadius: 6 }}>
                             ${(u.balance_mxn || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </td>
-                        <td style={{ padding: "12px 16px", textAlign: "right", fontSize: 12, color: "#2563eb", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                        <td className="admin-num" style={{ padding: "12px 16px", textAlign: "right", fontSize: 12, color: "#2563eb", fontWeight: 600 }}>
                           ${(u.total_won || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td style={{ padding: "12px 16px", textAlign: "right", fontSize: 12, color: "#64748b", fontVariantNumeric: "tabular-nums" }}>
