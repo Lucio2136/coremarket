@@ -101,6 +101,8 @@ export default function AdminPage() {
   const [auditLog, setAuditLog]           = useState<any[]>([]);
   const [auditLoading, setAuditLoading]   = useState(false);
   const [generatingMarkets, setGeneratingMarkets] = useState(false);
+  const [publishConfirm, setPublishConfirm] = useState<string | null>(null);
+  const [publishPhoto, setPublishPhoto]     = useState("");
 
   // Historial
   const [histFilter, setHistFilter] = useState<"all" | "open" | "closed" | "resolved">("all");
@@ -393,12 +395,16 @@ export default function AdminPage() {
     finally { setActionLoading(null); }
   };
 
-  const publishDraft = async (marketId: string) => {
+  const publishDraft = async (marketId: string, photoUrl: string) => {
     setActionLoading(marketId + "publish");
     try {
-      const { error } = await supabase.from("markets").update({ status: "open" }).eq("id", marketId);
+      const update: Record<string, any> = { status: "open" };
+      if (photoUrl.trim()) update.subject_photo_url = photoUrl.trim();
+      const { error } = await supabase.from("markets").update(update).eq("id", marketId);
       if (error) throw error;
       toast.success("Mercado publicado — ya es visible al público");
+      setPublishConfirm(null);
+      setPublishPhoto("");
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     finally { setActionLoading(null); }
@@ -3475,18 +3481,78 @@ export default function AdminPage() {
                           {/* Divider */}
                           <div style={{ height: 1, background: "#f1f5f9" }} />
 
+                          {/* Paso de foto antes de publicar */}
+                          {publishConfirm === m.id && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                              <p style={{ fontSize: 11, fontWeight: 700, color: "#0f172a", margin: 0, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                                Foto del mercado
+                              </p>
+                              <input
+                                type="url"
+                                placeholder="https://... URL de la imagen"
+                                value={publishPhoto}
+                                onChange={(e) => setPublishPhoto(e.target.value)}
+                                style={{
+                                  width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 8,
+                                  padding: "8px 10px", fontSize: 12, color: "#0f172a",
+                                  outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+                                }}
+                              />
+                              {publishPhoto.trim() && (
+                                <img
+                                  src={publishPhoto.trim()}
+                                  alt="preview"
+                                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                                  style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 8, border: "1px solid #e8ecf0" }}
+                                />
+                              )}
+                              <div style={{ display: "flex", gap: 8 }}>
+                                <button
+                                  onClick={() => publishDraft(m.id, publishPhoto)}
+                                  disabled={!!actionLoading}
+                                  style={{
+                                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                    padding: "10px 14px", borderRadius: 8,
+                                    background: isPublishing ? "#dcfce7" : "#16a34a",
+                                    color: isPublishing ? "#15803d" : "#fff",
+                                    border: "none", fontSize: 12, fontWeight: 700,
+                                    cursor: actionLoading ? "not-allowed" : "pointer",
+                                    fontFamily: "inherit",
+                                  }}
+                                >
+                                  <CheckCircle size={13} />
+                                  {isPublishing ? "Publicando..." : "Confirmar publicación"}
+                                </button>
+                                <button
+                                  onClick={() => { setPublishConfirm(null); setPublishPhoto(""); }}
+                                  style={{
+                                    padding: "10px 12px", borderRadius: 8, border: "1px solid #e8ecf0",
+                                    background: "#f8fafc", color: "#64748b", fontSize: 12, fontWeight: 600,
+                                    cursor: "pointer", fontFamily: "inherit",
+                                  }}
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Actions */}
                           <div style={{ display: "flex", gap: 8 }}>
                             <button
-                              onClick={() => publishDraft(m.id)}
-                              disabled={!!actionLoading}
+                              onClick={() => {
+                                setPublishConfirm(m.id);
+                                setPublishPhoto(m.subject_photo_url || "");
+                              }}
+                              disabled={!!actionLoading || publishConfirm === m.id}
                               style={{
                                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                                 padding: "10px 14px", borderRadius: 8,
-                                background: isPublishing ? "#dcfce7" : "#16a34a",
-                                color: isPublishing ? "#15803d" : "#fff",
-                                border: "none", fontSize: 12, fontWeight: 700,
-                                cursor: actionLoading ? "not-allowed" : "pointer",
+                                background: publishConfirm === m.id ? "#f0fdf4" : "#16a34a",
+                                color: publishConfirm === m.id ? "#15803d" : "#fff",
+                                border: publishConfirm === m.id ? "1.5px solid #bbf7d0" : "none",
+                                fontSize: 12, fontWeight: 700,
+                                cursor: (actionLoading || publishConfirm === m.id) ? "not-allowed" : "pointer",
                                 fontFamily: "inherit",
                               }}
                             >
