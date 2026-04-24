@@ -1357,8 +1357,11 @@ export default function AdminPage() {
 
           {/* ══ MERCADOS ══ */}
           {tab === "markets" && (() => {
-            // Categorías presentes en los mercados
-            const allCats = Array.from(new Set(markets.map((m) => m.category).filter(Boolean))) as string[];
+            // Siempre mostrar todas las categorías del config, más las que existan en BD
+            const catsInData = new Set(markets.map((m) => m.category).filter(Boolean));
+            const allCats = Object.keys(CATEGORY_CFG).concat(
+              Array.from(catsInData).filter((c) => !CATEGORY_CFG[c])
+            );
             const filteredMarkets = marketCatFilter === "Todas" ? markets : markets.filter((m) => m.category === marketCatFilter);
             // Agrupa por categoría respetando el filtro
             const groups: Record<string, typeof markets> = {};
@@ -1382,7 +1385,7 @@ export default function AdminPage() {
                       background: active ? (cfg?.bg ?? "#f1f5f9") : "#fff",
                       color: active ? (cfg?.color ?? "#0f172a") : "#64748b",
                     }}>
-                      {cfg?.emoji ?? "📦"} {cat} {cat !== "Todas" && <span style={{ opacity: .6 }}>({(groups[cat] ?? markets.filter(m => m.category === cat)).length})</span>}
+                      {cfg?.emoji ?? "📦"} {cat} {cat !== "Todas" && <span style={{ opacity: .6 }}>({markets.filter(m => m.category === cat).length})</span>}
                     </button>
                   );
                 })}
