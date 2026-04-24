@@ -227,9 +227,11 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (authLoading) return;
+    if (!user) { navigate("/"); return; }
+    if (profile === null) return; // profile aún cargando
     if (!profile?.is_admin) { navigate("/"); return; }
     fetchAll();
-  }, [user, authLoading, profile?.is_admin]);
+  }, [user, authLoading, profile]);
 
   const fetchAll = useCallback(async () => {
     setLoadingData(true);
