@@ -4,6 +4,7 @@ import {
   LogIn, LogOut, User, BarChart2, Gift, Bell,
   TrendingUp, Flame, Sparkles, Search, ChevronDown,
   CheckCircle, XCircle, ArrowUpCircle, Trophy, Clock, HelpCircle, Bookmark, LineChart,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSavedMarkets } from "@/hooks/use-saved-markets";
@@ -41,6 +42,7 @@ export function AppHeader() {
   const [referralOpen, setReferralOpen] = useState(false);
   const [searchVal, setSearchVal]       = useState("");
   const [searchOpen, setSearchOpen]     = useState(false);
+  const [filterOpen, setFilterOpen]     = useState(false);
   const [notifOpen, setNotifOpen]       = useState(false);
   const [avatarOpen, setAvatarOpen]     = useState(false);
   const notifRef  = useRef<HTMLDivElement>(null);
@@ -80,25 +82,283 @@ export function AppHeader() {
   const fmtMXN = (n: number) =>
     n.toLocaleString("es-MX", { minimumFractionDigits: 2 });
 
+  // Helper: avatar gradient class
+  const avatarGradient = {
+    violet: "from-violet-500 to-pink-500",
+    blue:   "from-blue-500 to-cyan-400",
+    green:  "from-emerald-500 to-teal-400",
+    orange: "from-orange-400 to-amber-300",
+    rose:   "from-rose-500 to-pink-400",
+    indigo: "from-indigo-500 to-violet-400",
+  }[profile?.avatar_color ?? "violet"] ?? "from-violet-500 to-pink-500";
+
   return (
     <>
       <header className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
 
-        {/* ── Fila principal ── */}
-        <div className="max-w-[1400px] mx-auto flex items-center gap-3 px-4 md:px-6 h-14">
+        {/* ══════════════════════════════════════════
+            MÓVIL (< sm)
+        ══════════════════════════════════════════ */}
 
-          {/* Logo — siempre visible, navega a home */}
-          <Link to="/" className="flex items-center gap-2 shrink-0 mr-2">
+        {/* Fila 1 móvil — Logo + iconos */}
+        <div className="sm:hidden flex items-center justify-between px-4 h-14">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="w-7 h-7 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center">
-              <span className="text-white dark:text-gray-900 text-xs font-black">C</span>
+              <span className="text-white dark:text-gray-900 text-xs font-black">L</span>
             </div>
-            <span className="font-bold text-[17px] text-gray-900 dark:text-gray-100 tracking-tight hidden sm:inline">
+            <span className="font-bold text-[17px] text-gray-900 dark:text-gray-100 tracking-tight">
               Lucebase
             </span>
           </Link>
 
-          {/* Buscador — full en sm+, toggle icon en móvil */}
-          <form onSubmit={handleSearch} className="hidden sm:flex flex-1 max-w-xl">
+          <div className="flex items-center gap-0.5">
+            {user && !loading ? (
+              <>
+                {/* Saldo */}
+                <span className="text-[15px] font-bold text-slate-900 dark:text-gray-100 tabular-nums mr-1" style={{ letterSpacing: "-0.01em" }}>
+                  ${fmtMXN(balance)}
+                </span>
+
+                {/* Notificaciones */}
+                <button
+                  onClick={() => { setNotifOpen((v) => !v); if (!notifOpen) markAllRead(); }}
+                  className="relative p-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-xl transition-colors"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                  )}
+                </button>
+
+                {/* Referidos */}
+                <button
+                  onClick={() => setReferralOpen(true)}
+                  className="p-2 text-gray-400 dark:text-gray-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 rounded-xl transition-colors"
+                >
+                  <Gift size={20} />
+                </button>
+
+                {/* Avatar */}
+                <div ref={avatarRef} className="relative ml-1">
+                  <button
+                    onClick={() => setAvatarOpen((v) => !v)}
+                    className="p-0.5 rounded-full hover:ring-2 hover:ring-gray-200 dark:hover:ring-gray-700 transition-all"
+                  >
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt={profile.username} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className={`w-8 h-8 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold ${avatarGradient}`}>
+                        {profile?.username?.slice(0, 1).toUpperCase() ?? "?"}
+                      </div>
+                    )}
+                  </button>
+
+                  {avatarOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+                      <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-800">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">{profile?.username}</p>
+                        <p className="text-[11px] text-emerald-600 font-bold tabular-nums" style={{ fontFamily: "'Azeret Mono', monospace" }}>${fmtMXN(balance)} MXN</p>
+                      </div>
+                      <div className="border-b border-gray-100 dark:border-gray-800">
+                        <button onClick={() => { setAvatarOpen(false); setDepositOpen(true); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <ArrowUpCircle size={14} className="rotate-180" /> Depositar
+                        </button>
+                        <button onClick={() => { setAvatarOpen(false); setWithdrawOpen(true); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <ArrowUpCircle size={14} /> Retirar
+                        </button>
+                      </div>
+                      <Link to="/profile" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <User size={14} /> Mi perfil
+                      </Link>
+                      <Link to="/my-bets" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <BarChart2 size={14} /> Mis predicciones
+                      </Link>
+                      <Link to="/leaderboard" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <Trophy size={14} /> Leaderboard
+                      </Link>
+                      <div className="h-px bg-gray-100 dark:bg-gray-800" />
+                      <button onClick={() => { setAvatarOpen(false); handleSignOut(); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        <LogOut size={14} /> Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <Button variant="primary" size="sm" onClick={() => setAuthOpen(true)}>
+                <LogIn size={14} strokeWidth={2} />
+                Entrar
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Fila 2 móvil — Tabs de categorías especiales */}
+        <div className="sm:hidden overflow-x-auto scrollbar-hide border-t border-gray-100 dark:border-gray-800" style={{ WebkitOverflowScrolling: "touch" }}>
+          <div className="flex items-center px-2 gap-0 whitespace-nowrap min-w-max">
+            {SPECIAL.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => selectCat(id)}
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-semibold border-b-2 transition-colors ${
+                  activeCat === id
+                    ? "border-gray-900 dark:border-gray-100 text-gray-900 dark:text-gray-100"
+                    : "border-transparent text-gray-400 dark:text-gray-500"
+                }`}
+              >
+                <Icon size={13} className={id === "saved" && savedCount > 0 ? "fill-amber-400 text-amber-500" : ""} />
+                {label}
+                {id === "saved" && savedCount > 0 && (
+                  <span className="min-w-[16px] h-4 px-0.5 bg-amber-400 text-white text-[10px] font-bold rounded-full flex items-center justify-center tabular-nums leading-none">
+                    {savedCount > 99 ? "99+" : savedCount}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Fila 3 móvil — Buscador siempre visible */}
+        <div className="sm:hidden px-3 py-2">
+          <form onSubmit={handleSearch} className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchVal}
+                onChange={(e) => setSearchVal(e.target.value)}
+                placeholder="Buscar"
+                className="w-full bg-gray-100 dark:bg-gray-800 rounded-2xl pl-9 pr-4 py-2.5 text-[14px] text-gray-700 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none transition-all"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setFilterOpen((v) => !v)}
+              className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+                filterOpen
+                  ? "text-gray-900 dark:text-gray-100 bg-gray-200 dark:bg-gray-700"
+                  : "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800"
+              }`}
+              aria-label="Filtros"
+            >
+              <SlidersHorizontal size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => selectCat(activeCat === "saved" ? "" : "saved")}
+              className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+                activeCat === "saved"
+                  ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
+                  : "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800"
+              }`}
+              aria-label="Guardados"
+            >
+              <Bookmark size={16} className={activeCat === "saved" ? "fill-amber-400" : ""} />
+            </button>
+          </form>
+        </div>
+
+        {/* Fila 3b móvil — Panel de filtros expandible */}
+        {filterOpen && (
+          <div className="sm:hidden px-3 pb-3 space-y-3">
+            {/* Ordenar por */}
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Ordenar por</p>
+              <div className="flex flex-wrap gap-1.5">
+                {SPECIAL.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => { selectCat(id); setFilterOpen(false); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
+                      activeCat === id
+                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                    }`}
+                  >
+                    <Icon size={12} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Categoría */}
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Categoría</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => { navigate("/"); setFilterOpen(false); }}
+                  className={`px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
+                    !activeCat || SPECIAL.some((s) => s.id === activeCat)
+                      ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                  }`}
+                >
+                  Todos
+                </button>
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => { selectCat(cat); setFilterOpen(false); }}
+                    className={`px-3 py-1.5 rounded-xl text-[13px] font-medium transition-colors ${
+                      activeCat === cat
+                        ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fila 4 móvil — Chips de categorías */}
+        <div className="sm:hidden overflow-x-auto scrollbar-hide pb-3" style={{ WebkitOverflowScrolling: "touch" }}>
+          <div className="flex items-center px-3 gap-2 whitespace-nowrap min-w-max">
+            <button
+              onClick={() => navigate("/")}
+              className={`px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-colors ${
+                !activeCat || activeCat === "" || SPECIAL.some((s) => s.id === activeCat)
+                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                  : "text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              Todos
+            </button>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => selectCat(cat)}
+                className={`px-3.5 py-1.5 rounded-xl text-[13px] font-medium transition-colors ${
+                  activeCat === cat
+                    ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold"
+                    : "text-gray-500 dark:text-gray-400"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════
+            DESKTOP (≥ sm) — sin cambios
+        ══════════════════════════════════════════ */}
+
+        {/* Fila principal desktop */}
+        <div className="hidden sm:flex max-w-[1400px] mx-auto items-center gap-3 px-4 md:px-6 h-14">
+
+          <Link to="/" className="flex items-center gap-2 shrink-0 mr-2">
+            <div className="w-7 h-7 bg-gray-900 dark:bg-white rounded-lg flex items-center justify-center">
+              <span className="text-white dark:text-gray-900 text-xs font-black">L</span>
+            </div>
+            <span className="font-bold text-[17px] text-gray-900 dark:text-gray-100 tracking-tight">
+              Lucebase
+            </span>
+          </Link>
+
+          <form onSubmit={handleSearch} className="flex flex-1 max-w-xl">
             <div className="relative w-full">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input
@@ -111,21 +371,9 @@ export function AppHeader() {
             </div>
           </form>
 
-          {/* Ícono búsqueda en móvil */}
-          <button
-            onClick={() => setSearchOpen((v) => !v)}
-            className="sm:hidden p-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Buscar"
-          >
-            <Search size={18} />
-          </button>
-
-          {/* Derecha */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
-
             {user && !loading ? (
               <>
-                {/* Saldo disponible */}
                 <div className="flex items-center mr-1">
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-gray-400 leading-none mb-0.5 uppercase tracking-widest hidden md:block">Saldo</p>
@@ -135,34 +383,20 @@ export function AppHeader() {
                   </div>
                 </div>
 
-                {/* Retirar */}
-                <Button
-                  variant="brand-ghost"
-                  onClick={() => setWithdrawOpen(true)}
-                  className="hidden sm:inline-flex px-3 py-1.5 text-[12px]"
-                >
+                <Button variant="brand-ghost" onClick={() => setWithdrawOpen(true)} className="px-3 py-1.5 text-[12px]">
                   Retirar
                 </Button>
-
-                {/* Depósito */}
                 <Button variant="dark" onClick={() => setDepositOpen(true)} className="px-3 py-1.5 text-[12px]">
                   Depósito
                 </Button>
 
-                {/* Referidos */}
-                <button
-                  onClick={() => setReferralOpen(true)}
-                  className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 rounded-lg transition-colors hidden sm:flex"
-                  title="Programa de referidos"
-                >
+                <button onClick={() => setReferralOpen(true)} className="p-1.5 text-gray-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 rounded-lg transition-colors" title="Programa de referidos">
                   <Gift size={18} />
                 </button>
 
-                {/* Tema */}
                 <ThemeToggle />
 
-                {/* Notificaciones — botón solo en desktop */}
-                <div ref={notifRef} className="relative hidden sm:flex">
+                <div ref={notifRef} className="relative">
                   <button
                     onClick={() => { setNotifOpen((v) => !v); if (!notifOpen) markAllRead(); }}
                     className="relative p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -176,7 +410,6 @@ export function AppHeader() {
                   </button>
                 </div>
 
-                {/* Avatar dropdown */}
                 <div ref={avatarRef} className="relative">
                   <button
                     onClick={() => setAvatarOpen((v) => !v)}
@@ -185,14 +418,7 @@ export function AppHeader() {
                     {profile?.avatar_url ? (
                       <img src={profile.avatar_url} alt={profile.username} className="w-7 h-7 rounded-full object-cover" />
                     ) : (
-                      <div className={`w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold ${{
-                          violet: "from-violet-500 to-pink-500",
-                          blue:   "from-blue-500 to-cyan-400",
-                          green:  "from-emerald-500 to-teal-400",
-                          orange: "from-orange-400 to-amber-300",
-                          rose:   "from-rose-500 to-pink-400",
-                          indigo: "from-indigo-500 to-violet-400",
-                        }[profile?.avatar_color ?? "violet"] ?? "from-violet-500 to-pink-500"}`}>
+                      <div className={`w-7 h-7 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xs font-bold ${avatarGradient}`}>
                         {profile?.username?.slice(0, 1).toUpperCase() ?? "?"}
                       </div>
                     )}
@@ -201,81 +427,27 @@ export function AppHeader() {
 
                   {avatarOpen && (
                     <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden">
-                      {/* Cabecera: usuario + saldo */}
                       <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-800">
                         <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">{profile?.username}</p>
                         <p className="text-[11px] text-emerald-600 font-bold tabular-nums" style={{ fontFamily: "'Azeret Mono', monospace" }}>${fmtMXN(balance)} MXN</p>
                       </div>
-
-                      {/* Opciones móvil (ocultas en sm+) */}
-                      <div className="sm:hidden border-b border-gray-100 dark:border-gray-800">
-                        <button
-                          onClick={() => { setAvatarOpen(false); setWithdrawOpen(true); }}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        >
-                          <ArrowUpCircle size={14} /> Retirar
-                        </button>
-                        <button
-                          onClick={() => { setAvatarOpen(false); setReferralOpen(true); }}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        >
-                          <Gift size={14} /> Referidos
-                        </button>
-                        <button
-                          onClick={() => { setAvatarOpen(false); setNotifOpen(true); }}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        >
-                          <Bell size={14} />
-                          Notificaciones
-                          {unreadCount > 0 && (
-                            <span className="ml-auto min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center tabular-nums">
-                              {unreadCount > 9 ? "9+" : unreadCount}
-                            </span>
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Navegación */}
-                      <Link
-                        to="/profile"
-                        onClick={() => setAvatarOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
+                      <Link to="/profile" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <User size={14} /> Mi perfil
                       </Link>
-                      <Link
-                        to="/my-bets"
-                        onClick={() => setAvatarOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
+                      <Link to="/my-bets" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <BarChart2 size={14} /> Mis predicciones
                       </Link>
-                      <Link
-                        to="/stats"
-                        onClick={() => setAvatarOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
+                      <Link to="/stats" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <LineChart size={14} /> Estadísticas
                       </Link>
-                      <Link
-                        to="/leaderboard"
-                        onClick={() => setAvatarOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
+                      <Link to="/leaderboard" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <Trophy size={14} /> Leaderboard
                       </Link>
-                      <Link
-                        to="/help"
-                        onClick={() => setAvatarOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                      >
+                      <Link to="/help" onClick={() => setAvatarOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <HelpCircle size={14} /> Centro de ayuda
                       </Link>
                       <div className="h-px bg-gray-100 dark:bg-gray-800" />
-                      <button
-                        onClick={() => { setAvatarOpen(false); handleSignOut(); }}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                      >
+                      <button onClick={() => { setAvatarOpen(false); handleSignOut(); }} className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         <LogOut size={14} /> Cerrar sesión
                       </button>
                     </div>
@@ -291,32 +463,12 @@ export function AppHeader() {
           </div>
         </div>
 
-        {/* ── Búsqueda expandida en móvil ── */}
-        {searchOpen && (
-          <div className="sm:hidden px-3 pb-2">
-            <form onSubmit={(e) => { handleSearch(e); setSearchOpen(false); }} className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              <input
-                autoFocus
-                type="text"
-                value={searchVal}
-                onChange={(e) => setSearchVal(e.target.value)}
-                onBlur={() => { if (!searchVal) setSearchOpen(false); }}
-                placeholder="Buscar mercados..."
-                className="w-full bg-gray-100 dark:bg-gray-800 border border-transparent rounded-full pl-8 pr-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-700 focus:border-gray-300 dark:focus:border-gray-600 transition-all"
-              />
-            </form>
-          </div>
-        )}
-
-        {/* ── Fila de categorías ── */}
+        {/* Fila de categorías desktop */}
         <div
-          className="max-w-[1400px] mx-auto px-4 md:px-6 overflow-x-auto scrollbar-hide scroll-touch"
+          className="hidden sm:block max-w-[1400px] mx-auto px-4 md:px-6 overflow-x-auto scrollbar-hide scroll-touch"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <div className="flex items-center gap-0.5 py-1 whitespace-nowrap min-w-max">
-
-            {/* Especiales */}
             {SPECIAL.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -327,10 +479,7 @@ export function AppHeader() {
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
               >
-                <Icon
-                  size={13}
-                  className={id === "saved" && savedCount > 0 ? "fill-amber-400 text-amber-500" : ""}
-                />
+                <Icon size={13} className={id === "saved" && savedCount > 0 ? "fill-amber-400 text-amber-500" : ""} />
                 {label}
                 {id === "saved" && savedCount > 0 && (
                   <span className="ml-0.5 min-w-[17px] h-[17px] px-1 bg-amber-400 text-white text-[10px] font-bold rounded-full flex items-center justify-center tabular-nums leading-none">
@@ -339,11 +488,7 @@ export function AppHeader() {
                 )}
               </button>
             ))}
-
-            {/* Separador */}
             <div className="w-px h-4 bg-gray-200 mx-1.5 shrink-0" />
-
-            {/* Categorías */}
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -357,18 +502,11 @@ export function AppHeader() {
                 {cat}
               </button>
             ))}
-
-            {/* Más */}
             <button className="flex items-center gap-0.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
               Más <ChevronDown size={13} />
             </button>
-
-            {/* Separador + FAQ */}
             <div className="w-px h-4 bg-gray-200 mx-1.5 shrink-0" />
-            <Link
-              to="/help"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
+            <Link to="/help" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <HelpCircle size={13} />
               Ayuda
             </Link>
@@ -376,11 +514,11 @@ export function AppHeader() {
         </div>
       </header>
 
-      {/* Panel de notificaciones — funciona en móvil y desktop */}
+      {/* Panel de notificaciones */}
       {notifOpen && (
         <div
           ref={notifRef}
-          className="fixed sm:absolute right-2 sm:right-auto top-[110px] sm:top-auto w-[calc(100vw-16px)] sm:w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden"
+          className="fixed right-2 top-[210px] sm:top-[110px] w-[calc(100vw-16px)] sm:w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl z-50 overflow-hidden"
           style={{ maxWidth: 320 }}
         >
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
