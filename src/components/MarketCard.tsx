@@ -161,6 +161,7 @@ export const MarketCard = memo(function MarketCard({
   const [shareOpen, setShareOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [picked, setPicked]   = useState<"yes" | "no" | null>(null);
+  const [copied, setCopied]   = useState(false);
 
   const yesP     = market.yes_percent ?? 50;
   const noP      = 100 - yesP;
