@@ -26,7 +26,7 @@ const SPECIAL = [
 ];
 
 const CATEGORIES = [
-  "Política", "Deportes", "Entretenimiento", "Finanzas",
+  "Morbo", "Política", "Deportes", "Entretenimiento", "Finanzas",
   "Tech", "Música", "Negocios", "Elecciones", "Redes", "Cultura",
 ];
 

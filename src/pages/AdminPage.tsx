@@ -67,6 +67,7 @@ const KPI_THEMES = [
 const CHART_COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe", "#eff6ff", "#f8fafc"];
 
 const CATEGORY_CFG: Record<string, { emoji: string; color: string; bg: string; hint: string }> = {
+  "Morbo":           { emoji: "🌶️",  color: "#dc2626", bg: "#fff1f2", hint: "Chismes, romances, escándalos, rupturas, polémicas de celebridades..." },
   "Política":        { emoji: "🏛️",  color: "#7c3aed", bg: "#f5f3ff", hint: "Políticos, decisiones de gobierno, reformas y más..." },
   "Entretenimiento": { emoji: "🎭",  color: "#db2777", bg: "#fdf2f8", hint: "Artistas, música, series, celebridades, redes..." },
   "Deportes":        { emoji: "⚽",  color: "#16a34a", bg: "#f0fdf4", hint: "Fútbol, boxeo, F1, Selección Mexicana, clubes..." },
@@ -1955,6 +1956,7 @@ export default function AdminPage() {
                       { label: "🗳️ Elecciones · Múltiple", preset: { market_type: "multiple" as const, is_trending: false, category: "Elecciones",  description: "Elecciones", title: "¿Quién ganará las elecciones?" } },
                       { label: "₿ Precio · Binario",       preset: { market_type: "binary"   as const, is_trending: false, category: "Finanzas",    description: "Bitcoin", title: "¿Bitcoin superará los $X,000 USD esta semana?" } },
                       { label: "📊 Rango · Scalar",        preset: { market_type: "scalar"   as const, is_trending: false, category: "Finanzas",    description: "Precio",  title: "¿En cuánto cerrará el precio de X?" } },
+                      { label: "🌶️ Morbo",                  preset: { market_type: "binary"   as const, is_trending: true,  category: "Morbo",          description: "Drama", title: "" } },
                       { label: "🎭 Entretenimiento",        preset: { market_type: "binary"   as const, is_trending: false, category: "Entretenimiento", description: "", title: "" } },
                     ].map(({ label, preset }) => (
                       <button
