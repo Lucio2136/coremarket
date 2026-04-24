@@ -405,7 +405,8 @@ export default function AdminPage() {
     finally { setActionLoading(null); }
   };
 
-  const loadDraft = (m: any) => {
+  const loadDraft = async (m: any) => {
+    const existingPhoto = (m.subject_photo_url ?? "").trim();
     setNewMarket({
       title:             m.title             ?? "",
       subject_name:      m.subject_name      ?? "",
@@ -420,13 +421,24 @@ export default function AdminPage() {
       scalar_min:        m.scalar_min        ?? 0,
       scalar_max:        m.scalar_max        ?? 100,
       scalar_unit:       m.scalar_unit       ?? "",
-      subject_photo_url: m.subject_photo_url ?? "",
+      subject_photo_url: existingPhoto,
       description:       m.description       ?? "",
       rules:             m.rules             ?? "",
     });
     setEditingDraftId(m.id);
     setTab("create");
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Si el borrador no tiene foto, buscarla en Wikipedia de inmediato
+    if (!existingPhoto && m.subject_name?.trim()) {
+      setWikiLoading(true);
+      const url = await fetchWikiPhoto(m.subject_name.trim());
+      if (url) {
+        setNewMarket((prev) => ({ ...prev, subject_photo_url: prev.subject_photo_url.trim() ? prev.subject_photo_url : url }));
+        setWikiSource("es");
+      }
+      setWikiLoading(false);
+    }
   };
 
   const deleteDraft = async (marketId: string) => {
