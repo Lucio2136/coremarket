@@ -56,11 +56,11 @@ const PAGE_TITLES: Record<Tab, string> = {
 
 // KPI card color themes
 const KPI_THEMES = [
-  { bg: "#ecfdf5", border: "#6ee7b7", numColor: "#059669", iconBg: "#059669", label: "Pozo total" },
-  { bg: "#eff6ff", border: "#93c5fd", numColor: "#2563eb", iconBg: "#2563eb", label: "Usuarios" },
-  { bg: "#f0f9ff", border: "#7dd3fc", numColor: "#0369a1", iconBg: "#0369a1", label: "Mercados" },
-  { bg: "#fffbeb", border: "#fcd34d", numColor: "#d97706", iconBg: "#d97706", label: "Predicciones" },
-  { bg: "#fdf4ff", border: "#e9d5ff", numColor: "#7c3aed", iconBg: "#7c3aed", label: "Retiros" },
+  { bg: "#ffffff", border: "#e8ecf0", numColor: "#0f172a", iconBg: "#059669", accentBg: "#ecfdf5", accentColor: "#059669", label: "Pozo total" },
+  { bg: "#ffffff", border: "#e8ecf0", numColor: "#0f172a", iconBg: "#2563eb", accentBg: "#eff6ff", accentColor: "#2563eb", label: "Usuarios" },
+  { bg: "#ffffff", border: "#e8ecf0", numColor: "#0f172a", iconBg: "#0369a1", accentBg: "#f0f9ff", accentColor: "#0369a1", label: "Mercados" },
+  { bg: "#ffffff", border: "#e8ecf0", numColor: "#0f172a", iconBg: "#d97706", accentBg: "#fffbeb", accentColor: "#d97706", label: "Predicciones" },
+  { bg: "#ffffff", border: "#e8ecf0", numColor: "#0f172a", iconBg: "#7c3aed", accentBg: "#fdf4ff", accentColor: "#7c3aed", label: "Retiros" },
 ];
 
 const CHART_COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe", "#eff6ff", "#f8fafc"];
@@ -228,7 +228,7 @@ export default function AdminPage() {
     if (authLoading) return;
     if (!profile?.is_admin) { navigate("/"); return; }
     fetchAll();
-  }, [user, authLoading]);
+  }, [user, authLoading, profile?.is_admin]);
 
   const fetchAll = useCallback(async () => {
     setLoadingData(true);
@@ -897,59 +897,84 @@ export default function AdminPage() {
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f1f5f9", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f0f4f8", fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* ══ Sidebar ══ */}
       <aside style={{
-        width: 220, flexShrink: 0, position: "fixed", height: "100%",
-        background: "#0f172a", display: "flex", flexDirection: "column", zIndex: 20,
+        width: 232, flexShrink: 0, position: "fixed", height: "100%",
+        background: "#ffffff",
+        borderRight: "1px solid #e8ecf0",
+        display: "flex", flexDirection: "column", zIndex: 20,
+        boxShadow: "2px 0 12px rgba(0,0,0,0.04)",
       }}>
         {/* Logo */}
-        <div style={{ padding: "22px 20px 18px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ padding: "22px 20px 18px", borderBottom: "1px solid #f0f4f8" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
-              width: 30, height: 30, background: "#2563eb", borderRadius: 8,
+              width: 34, height: 34,
+              background: "linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)",
+              borderRadius: 10,
               display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 4px 10px rgba(37,99,235,0.35)",
             }}>
-              <span style={{ color: "#fff", fontSize: 12, fontWeight: 900 }}>Q</span>
+              <span style={{ color: "#fff", fontSize: 14, fontWeight: 900, letterSpacing: "-0.03em" }}>L</span>
             </div>
             <div>
-              <p style={{ color: "#f8fafc", fontSize: 14, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1, margin: 0 }}>Lucebase</p>
-              <p style={{ color: "#475569", fontSize: 10, letterSpacing: "0.1em", marginTop: 3, margin: "3px 0 0" }}>ADMIN</p>
+              <p style={{ color: "#0f172a", fontSize: 15, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1, margin: 0 }}>Lucebase</p>
+              <p style={{ color: "#94a3b8", fontSize: 10, letterSpacing: "0.12em", fontWeight: 600, textTransform: "uppercase", marginTop: 3, margin: "3px 0 0" }}>Admin Panel</p>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 3 }}>
+        <nav style={{ flex: 1, padding: "12px 10px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
           {SIDEBAR_ITEMS.map(({ key, icon: Icon, label }) => {
             const active = tab === key;
+            const badge = key === "withdrawals" && pendingWdCount > 0 ? pendingWdCount : null;
             return (
               <button
                 key={key}
                 onClick={() => setTab(key as Tab)}
                 style={{
                   display: "flex", alignItems: "center", gap: 10,
-                  padding: "9px 12px", borderRadius: 8, border: "none", cursor: "pointer",
+                  padding: "9px 12px", borderRadius: 9, border: "none", cursor: "pointer",
                   background: active ? "#2563eb" : "transparent",
                   color: active ? "#ffffff" : "#64748b",
-                  fontSize: 13, fontWeight: active ? 600 : 400,
+                  fontSize: 13, fontWeight: active ? 600 : 500,
                   textAlign: "left", width: "100%", transition: "all 0.15s",
+                  boxShadow: active ? "0 4px 12px rgba(37,99,235,0.25)" : "none",
                 }}
-                onMouseEnter={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLButtonElement).style.color = "#cbd5e1"; } }}
+                onMouseEnter={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "#f5f8ff"; (e.currentTarget as HTMLButtonElement).style.color = "#2563eb"; } }}
                 onMouseLeave={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#64748b"; } }}
               >
-                <Icon size={15} />
-                {label}
+                <Icon size={15} style={{ flexShrink: 0 }} />
+                <span style={{ flex: 1 }}>{label}</span>
+                {badge !== null && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, minWidth: 18, height: 18,
+                    background: active ? "rgba(255,255,255,0.25)" : "#ef4444",
+                    color: "#fff", borderRadius: 9,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: "0 5px",
+                  }}>{badge}</span>
+                )}
               </button>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div style={{ padding: "12px 10px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <div style={{ padding: "4px 12px 10px" }}>
-            <p style={{ fontSize: 11, color: "#475569", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
+        <div style={{ padding: "12px 10px", borderTop: "1px solid #f0f4f8" }}>
+          <div style={{ padding: "6px 12px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg, #2563eb, #7c3aed)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 10, fontWeight: 800, color: "#fff",
+            }}>
+              {initials(profile?.username || user.email?.split("@")[0] || "A")}
+            </div>
+            <p style={{ fontSize: 11, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0, flex: 1 }}>
               {user.email}
             </p>
           </div>
@@ -957,12 +982,12 @@ export default function AdminPage() {
             onClick={handleSignOut}
             style={{
               display: "flex", alignItems: "center", gap: 10,
-              padding: "9px 12px", borderRadius: 8, border: "none", cursor: "pointer",
-              background: "transparent", color: "#ef4444",
-              fontSize: 13, width: "100%", transition: "all 0.15s",
+              padding: "9px 12px", borderRadius: 9, border: "1px solid #fee2e2", cursor: "pointer",
+              background: "#fff5f5", color: "#ef4444",
+              fontSize: 12, fontWeight: 600, width: "100%", transition: "all 0.15s",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#fee2e2"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#fff5f5"; }}
           >
             <LogOut size={14} /> Cerrar sesión
           </button>
@@ -970,20 +995,21 @@ export default function AdminPage() {
       </aside>
 
       {/* ══ Main ══ */}
-      <main style={{ marginLeft: 220, flex: 1, minHeight: "100vh" }}>
+      <main style={{ marginLeft: 232, flex: 1, minHeight: "100vh" }}>
 
         {/* Top bar */}
         <div style={{
           position: "sticky", top: 0, zIndex: 10,
           background: isFrozen ? "#fff1f2" : "#ffffff",
-          borderBottom: `1px solid ${isFrozen ? "#fca5a5" : "#e2e8f0"}`,
-          padding: "0 28px", height: 56,
+          borderBottom: `1px solid ${isFrozen ? "#fca5a5" : "#e8ecf0"}`,
+          padding: "0 28px", height: 60,
           display: "flex", alignItems: "center", justifyContent: "space-between",
           transition: "background 0.3s, border-color 0.3s",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div>
-              <h1 style={{ fontSize: 15, fontWeight: 700, color: isFrozen ? "#be123c" : "#0f172a", margin: 0, lineHeight: 1 }}>
+              <h1 style={{ fontSize: 16, fontWeight: 700, color: isFrozen ? "#be123c" : "#0f172a", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>
                 {PAGE_TITLES[tab]}
               </h1>
               <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 3, margin: "3px 0 0", textTransform: "capitalize" }}>
@@ -1030,7 +1056,7 @@ export default function AdminPage() {
                   style={{
                     padding: "6px 10px", borderRadius: 7,
                     background: "#f1f5f9", color: "#64748b",
-                    border: "1px solid #e2e8f0", fontSize: 11, cursor: "pointer",
+                    border: "1px solid #e8ecf0", fontSize: 11, cursor: "pointer",
                   }}
                 >
                   Cancelar
@@ -1061,7 +1087,7 @@ export default function AdminPage() {
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "6px 12px", borderRadius: 7,
-                border: "1px solid #e2e8f0", background: "#fff",
+                border: "1px solid #e8ecf0", background: "#fff",
                 fontSize: 12, color: "#64748b", cursor: "pointer",
               }}
             >
@@ -1071,37 +1097,47 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div style={{ padding: 24 }}>
+        <div style={{ padding: 28 }}>
 
           {/* ══ DASHBOARD ══ */}
           {tab === "dashboard" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
               {/* KPIs */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
                 {kpiData.map(({ label, value, sub, icon: Icon }, i) => {
                   const theme = KPI_THEMES[i];
                   return (
                     <div key={label} style={{
                       background: theme.bg,
-                      borderRadius: 12, border: `1.5px solid ${theme.border}`,
-                      padding: "18px 20px",
-                    }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                        <div style={{
-                          width: 34, height: 34, borderRadius: 9,
-                          background: theme.iconBg,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                        }}>
-                          <Icon size={16} color="#fff" />
+                      borderRadius: 14, border: `1px solid ${theme.border}`,
+                      padding: "20px 20px 16px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                      transition: "box-shadow 0.2s, transform 0.2s",
+                    }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 6px 20px rgba(0,0,0,0.09)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(-1px)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; }}
+                    >
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: 0 }}>
+                            {label}
+                          </p>
                         </div>
-                        <ArrowUpRight size={13} color={theme.numColor} style={{ opacity: 0.5 }} />
+                        <div style={{
+                          width: 38, height: 38, borderRadius: 10,
+                          background: theme.accentBg,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                        }}>
+                          <Icon size={17} color={theme.iconBg} />
+                        </div>
                       </div>
-                      <p style={{ fontSize: 28, fontWeight: 800, color: theme.numColor, lineHeight: 1, margin: 0, fontVariantNumeric: "tabular-nums" }}>
+                      <p style={{ fontSize: 24, fontWeight: 800, color: theme.numColor, lineHeight: 1, margin: 0, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
                         {value}
                       </p>
-                      <p style={{ fontSize: 11, color: "#64748b", marginTop: 6, margin: "6px 0 0" }}>
-                        {label} · {sub}
+                      <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 6, margin: "6px 0 0" }}>
+                        {sub}
                       </p>
                     </div>
                   );
@@ -1112,9 +1148,9 @@ export default function AdminPage() {
               <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 16 }}>
 
                 {/* Bar chart */}
-                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: "20px 20px 12px" }}>
+                <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", padding: "22px 22px 14px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                   <div style={{ marginBottom: 18 }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Pozo por mercado</h3>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.01em" }}>Pozo por mercado</h3>
                     <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 3, margin: "3px 0 0" }}>Top 8 por volumen · MXN</p>
                   </div>
                   {chartData.length > 0 ? (
@@ -1138,10 +1174,10 @@ export default function AdminPage() {
                 </div>
 
                 {/* Top usuarios */}
-                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Top usuarios</h3>
-                    <span style={{ fontSize: 10, color: "#94a3b8", background: "#f1f5f9", padding: "2px 8px", borderRadius: 20 }}>
+                <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", padding: 22, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.01em" }}>Top usuarios</h3>
+                    <span style={{ fontSize: 10, color: "#64748b", background: "#f0f4f8", padding: "3px 10px", borderRadius: 20, fontWeight: 600 }}>
                       por saldo
                     </span>
                   </div>
@@ -1156,7 +1192,7 @@ export default function AdminPage() {
                             <span style={{ fontSize: 14, width: 20, textAlign: "center" }}>{medals[i] ?? ""}</span>
                             <div style={{
                               width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                              background: i === 0 ? "#fbbf24" : "#e2e8f0",
+                              background: i === 0 ? "#fbbf24" : "#e8ecf0",
                               display: "flex", alignItems: "center", justifyContent: "center",
                               fontSize: 10, fontWeight: 700,
                               color: i === 0 ? "#78350f" : "#475569",
@@ -1177,15 +1213,15 @@ export default function AdminPage() {
               </div>
 
               {/* Últimas predicciones */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Últimas predicciones</h3>
-                  <span style={{ fontSize: 11, color: "#94a3b8", background: "#f1f5f9", padding: "2px 8px", borderRadius: 20 }}>{bets.length} registros</span>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ padding: "16px 22px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.01em" }}>Últimas predicciones</h3>
+                  <span style={{ fontSize: 11, color: "#64748b", background: "#f0f4f8", padding: "3px 10px", borderRadius: 20, fontWeight: 600 }}>{bets.length} registros</span>
                 </div>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
-                      <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                      <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                         {[
                           { label: "Usuario", align: "left" },
                           { label: "Mercado", align: "left" },
@@ -1194,7 +1230,7 @@ export default function AdminPage() {
                           { label: "Pago pot.", align: "right" },
                           { label: "Estado", align: "center" },
                         ].map(({ label, align }) => (
-                          <th key={label} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: align as any }}>
+                          <th key={label} style={{ padding: "11px 18px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: align as any }}>
                             {label}
                           </th>
                         ))}
@@ -1202,7 +1238,10 @@ export default function AdminPage() {
                     </thead>
                     <tbody>
                       {bets.slice(0, 12).map((bet) => (
-                        <tr key={bet.id} style={{ borderBottom: "1px solid #f8fafc" }}>
+                        <tr key={bet.id} style={{ borderBottom: "1px solid #f8fafc" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "#f8fafc"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "transparent"; }}
+                        >
                           <td style={{ padding: "11px 16px", fontSize: 13, fontWeight: 600, color: "#0f172a" }}>
                             {bet.profiles?.username || "—"}
                           </td>
@@ -1246,7 +1285,7 @@ export default function AdminPage() {
 
           {/* ══ MERCADOS ══ */}
           {tab === "markets" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {loadingData && (
                 <div style={{ textAlign: "center", padding: "64px 0", color: "#94a3b8", fontSize: 13 }}>
                   Cargando mercados...
@@ -1261,9 +1300,11 @@ export default function AdminPage() {
                 const isOpen = market.status === "open";
                 return (
                   <div key={market.id} style={{
-                    background: "#fff", borderRadius: 12,
-                    border: "1px solid #e2e8f0", padding: "16px 20px",
+                    background: "#fff", borderRadius: 14,
+                    border: "1px solid #e8ecf0", padding: "18px 22px",
                     borderLeft: `4px solid ${isOpen ? "#22c55e" : "#94a3b8"}`,
+                    boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
+                    transition: "box-shadow 0.2s",
                   }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
                       <div style={{
@@ -1470,7 +1511,7 @@ export default function AdminPage() {
                                 padding: "6px 12px", borderRadius: 7, cursor: "pointer",
                                 background: editingMarketId === market.id ? "#eff6ff" : "#f8fafc",
                                 color: editingMarketId === market.id ? "#2563eb" : "#64748b",
-                                border: `1.5px solid ${editingMarketId === market.id ? "#93c5fd" : "#e2e8f0"}`,
+                                border: `1.5px solid ${editingMarketId === market.id ? "#93c5fd" : "#e8ecf0"}`,
                                 fontSize: 11, fontWeight: 700,
                               }}
                             >
@@ -1482,11 +1523,11 @@ export default function AdminPage() {
                               disabled={!!actionLoading}
                               style={{
                                 marginLeft: "auto", padding: "6px 8px", borderRadius: 7,
-                                border: "1px solid #e2e8f0", background: "#fff",
+                                border: "1px solid #e8ecf0", background: "#fff",
                                 cursor: "pointer", color: "#94a3b8",
                               }}
                               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#be123c"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#fca5a5"; (e.currentTarget as HTMLButtonElement).style.background = "#ffe4e6"; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#94a3b8"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#94a3b8"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#e8ecf0"; (e.currentTarget as HTMLButtonElement).style.background = "#fff"; }}
                             >
                               <Trash2 size={13} />
                             </button>
@@ -1580,11 +1621,11 @@ export default function AdminPage() {
 
           {/* ══ USUARIOS ══ */}
           {tab === "users" && (
-            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-              <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <div style={{ padding: "16px 22px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Usuarios registrados</h3>
-                  <span style={{ fontSize: 11, color: "#64748b", background: "#f1f5f9", padding: "2px 8px", borderRadius: 20 }}>{users.length} total</span>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.01em" }}>Usuarios registrados</h3>
+                  <span style={{ fontSize: 11, color: "#64748b", background: "#f0f4f8", padding: "3px 10px", borderRadius: 20, fontWeight: 600 }}>{users.length} total</span>
                 </div>
                 <div style={{ position: "relative", minWidth: 220 }}>
                   <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", pointerEvents: "none" }} width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -1597,18 +1638,18 @@ export default function AdminPage() {
                     placeholder="Buscar usuario..."
                     style={{
                       paddingLeft: 30, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
-                      fontSize: 12, border: "1.5px solid #e2e8f0", borderRadius: 8,
+                      fontSize: 12, border: "1.5px solid #e8ecf0", borderRadius: 8,
                       outline: "none", background: "#f8fafc", color: "#0f172a", width: "100%",
                       boxSizing: "border-box",
                     }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
                   />
                 </div>
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                     {[
                       { label: "Usuario / Email", align: "left" },
                       { label: "Etiquetas", align: "left" },
@@ -1618,7 +1659,7 @@ export default function AdminPage() {
                       { label: "Registro", align: "right" },
                       { label: "Acciones", align: "right" },
                     ].map(({ label, align }) => (
-                      <th key={label} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: align as any }}>
+                      <th key={label} style={{ padding: "11px 18px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: align as any }}>
                         {label}
                       </th>
                     ))}
@@ -1702,7 +1743,7 @@ export default function AdminPage() {
                               padding: "5px 10px", borderRadius: 7, cursor: "pointer",
                               background: adjustingUserId === u.id ? "#eff6ff" : "#f8fafc",
                               color: adjustingUserId === u.id ? "#2563eb" : "#64748b",
-                              border: `1px solid ${adjustingUserId === u.id ? "#93c5fd" : "#e2e8f0"}`,
+                              border: `1px solid ${adjustingUserId === u.id ? "#93c5fd" : "#e8ecf0"}`,
                               fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
                             }}
                           >
@@ -1778,7 +1819,7 @@ export default function AdminPage() {
           {/* ══ CREAR MERCADO ══ */}
           {tab === "create" && (
             <div style={{ maxWidth: 640 }}>
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", padding: 28, display: "flex", flexDirection: "column", gap: 22, boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
 
                 {/* ── Plantillas rápidas ── */}
                 <div>
@@ -1799,12 +1840,12 @@ export default function AdminPage() {
                         type="button"
                         onClick={() => setNewMarket((prev) => ({ ...prev, ...preset }))}
                         style={{
-                          padding: "6px 12px", borderRadius: 8, border: "1.5px solid #e2e8f0",
+                          padding: "6px 12px", borderRadius: 8, border: "1.5px solid #e8ecf0",
                           background: "#f8fafc", color: "#374151", fontSize: 12, fontWeight: 600,
                           cursor: "pointer", fontFamily: "inherit", transition: "border-color .15s",
                         }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#2563eb"; (e.currentTarget as HTMLButtonElement).style.color = "#1d4ed8"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLButtonElement).style.color = "#374151"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e8ecf0"; (e.currentTarget as HTMLButtonElement).style.color = "#374151"; }}
                       >
                         {label}
                       </button>
@@ -1812,7 +1853,7 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                <div style={{ height: 1, background: "#e2e8f0" }} />
+                <div style={{ height: 1, background: "#e8ecf0" }} />
 
                 <div>
                   <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
@@ -1824,13 +1865,13 @@ export default function AdminPage() {
                     onChange={(e) => setNewMarket({ ...newMarket, title: e.target.value })}
                     placeholder='¿Trump dirá "guerra" en un discurso esta semana?'
                     style={{
-                      width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9,
+                      width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
                       padding: "10px 14px", fontSize: 13, color: "#0f172a",
                       background: "#f8fafc", resize: "none", outline: "none",
                       boxSizing: "border-box", fontFamily: "inherit", transition: "border-color 0.15s",
                     }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
                   />
                 </div>
 
@@ -1844,12 +1885,12 @@ export default function AdminPage() {
                       onChange={(e) => setNewMarket({ ...newMarket, subject_name: e.target.value })}
                       placeholder="Donald Trump"
                       style={{
-                        width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9,
+                        width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
                         padding: "9px 14px", fontSize: 13, color: "#0f172a",
                         background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit",
                       }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
                     />
                   </div>
                   <div>
@@ -1860,7 +1901,7 @@ export default function AdminPage() {
                       value={newMarket.category}
                       onChange={(e) => setNewMarket({ ...newMarket, category: e.target.value })}
                       style={{
-                        width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9,
+                        width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
                         padding: "9px 14px", fontSize: 13, color: "#0f172a",
                         background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit",
                       }}
@@ -1894,7 +1935,7 @@ export default function AdminPage() {
                     {/* Preview */}
                     <div style={{
                       width: 52, height: 52, borderRadius: 12, flexShrink: 0, overflow: "hidden",
-                      border: `1.5px solid ${newMarket.subject_photo_url ? "#86efac" : "#e2e8f0"}`,
+                      border: `1.5px solid ${newMarket.subject_photo_url ? "#86efac" : "#e8ecf0"}`,
                       background: "#f1f5f9",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 13, color: "#94a3b8", fontWeight: 700,
@@ -1931,12 +1972,12 @@ export default function AdminPage() {
                         }}
                         placeholder="Se busca automático al escribir el nombre…"
                         style={{
-                          width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9,
+                          width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
                           padding: "9px 14px", fontSize: 12, color: "#0f172a",
                           background: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box",
                         }}
                         onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
-                        onBlur={(e) => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.background = "#f8fafc"; }}
+                        onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
                       />
                       <div style={{ display: "flex", gap: 6 }}>
                         {/* Re-buscar en Wikipedia */}
@@ -1953,7 +1994,7 @@ export default function AdminPage() {
                             setTimeout(() => setNewMarket((prev) => ({ ...prev, subject_name: name })), 50);
                           }}
                           style={{
-                            padding: "5px 10px", borderRadius: 7, border: "1.5px solid #e2e8f0",
+                            padding: "5px 10px", borderRadius: 7, border: "1.5px solid #e8ecf0",
                             background: "#f8fafc", color: "#475569", fontSize: 11, fontWeight: 600,
                             cursor: wikiLoading || !newMarket.subject_name.trim() ? "not-allowed" : "pointer",
                             opacity: wikiLoading || !newMarket.subject_name.trim() ? 0.5 : 1,
@@ -1996,7 +2037,7 @@ export default function AdminPage() {
                         onClick={() => setNewMarket({ ...newMarket, market_type: t })}
                         style={{
                           flex: 1, padding: "9px 0", borderRadius: 9, border: "1.5px solid",
-                          borderColor: newMarket.market_type === t ? "#2563eb" : "#e2e8f0",
+                          borderColor: newMarket.market_type === t ? "#2563eb" : "#e8ecf0",
                           background: newMarket.market_type === t ? "#eff6ff" : "#f8fafc",
                           color: newMarket.market_type === t ? "#1d4ed8" : "#64748b",
                           fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: "inherit",
@@ -2020,7 +2061,7 @@ export default function AdminPage() {
                           {/* Avatar preview de la opción */}
                           <div style={{
                             width: 42, height: 42, borderRadius: 10, flexShrink: 0, overflow: "hidden",
-                            border: `1.5px solid ${opt.photo_url ? "#86efac" : "#e2e8f0"}`,
+                            border: `1.5px solid ${opt.photo_url ? "#86efac" : "#e8ecf0"}`,
                             background: "#f1f5f9", display: "flex", alignItems: "center",
                             justifyContent: "center", fontSize: 11, color: "#94a3b8",
                             fontWeight: 700, position: "relative", marginTop: 1,
@@ -2054,7 +2095,7 @@ export default function AdminPage() {
                               }}
                               placeholder={`Opción ${i + 1}${i < 2 ? " *" : ""} — ej. Trump, AMLO…`}
                               style={{
-                                width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9,
+                                width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
                                 padding: "8px 12px", fontSize: 13, color: "#0f172a",
                                 background: "#f8fafc", outline: "none", fontFamily: "inherit",
                                 boxSizing: "border-box",
@@ -2071,7 +2112,7 @@ export default function AdminPage() {
                                 }}
                                 placeholder="URL foto (auto-Wikipedia al escribir nombre)"
                                 style={{
-                                  flex: 1, border: "1.5px solid #e2e8f0", borderRadius: 7,
+                                  flex: 1, border: "1.5px solid #e8ecf0", borderRadius: 7,
                                   padding: "6px 10px", fontSize: 11, color: "#475569",
                                   background: "#f8fafc", outline: "none", fontFamily: "inherit",
                                   boxSizing: "border-box",
@@ -2129,7 +2170,7 @@ export default function AdminPage() {
                           type="number"
                           value={newMarket.scalar_min}
                           onChange={(e) => setNewMarket({ ...newMarket, scalar_min: parseFloat(e.target.value) || 0 })}
-                          style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                          style={{ width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                       </div>
                       <div>
@@ -2138,7 +2179,7 @@ export default function AdminPage() {
                           type="number"
                           value={newMarket.scalar_max}
                           onChange={(e) => setNewMarket({ ...newMarket, scalar_max: parseFloat(e.target.value) || 0 })}
-                          style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                          style={{ width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                       </div>
                       <div>
@@ -2148,7 +2189,7 @@ export default function AdminPage() {
                           placeholder="%, MXN, pts…"
                           value={newMarket.scalar_unit}
                           onChange={(e) => setNewMarket({ ...newMarket, scalar_unit: e.target.value })}
-                          style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                          style={{ width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                       </div>
                     </div>
@@ -2186,7 +2227,7 @@ export default function AdminPage() {
                         </label>
                         <input type="number" min="1" max="99" value={newMarket.yes_percent}
                           onChange={(e) => setNewMarket({ ...newMarket, yes_percent: parseInt(e.target.value), no_percent: 100 - parseInt(e.target.value) })}
-                          style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                          style={{ width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                       </div>
                     </div>
@@ -2211,7 +2252,7 @@ export default function AdminPage() {
                   </label>
                   <input type="datetime-local" value={newMarket.closes_at}
                     onChange={(e) => setNewMarket({ ...newMarket, closes_at: e.target.value })}
-                    style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                    style={{ width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                   />
                 </div>
 
@@ -2225,7 +2266,7 @@ export default function AdminPage() {
                     value={newMarket.description}
                     onChange={(e) => setNewMarket({ ...newMarket, description: e.target.value })}
                     placeholder="Subcategoría corta (ej: Bitcoin, LoL, Esports, Mensual) o contexto del mercado..."
-                    style={{ width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }}
+                    style={{ width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9, padding: "9px 14px", fontSize: 13, color: "#0f172a", background: "#f8fafc", outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }}
                   />
                   <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 5 }}>
                     Si es ≤ 25 caracteres se muestra como etiqueta en el card (ej: <strong style={{ color: "#374151" }}>Bitcoin</strong>, <strong style={{ color: "#374151" }}>LoL</strong>). Si es más largo se usa solo como contexto interno.
@@ -2248,7 +2289,7 @@ export default function AdminPage() {
 
                 {/* En Vivo toggle */}
                 <div onClick={() => setNewMarket({ ...newMarket, is_trending: !newMarket.is_trending })} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                  <div style={{ width: 40, height: 22, borderRadius: 11, position: "relative", background: newMarket.is_trending ? "#EF4444" : "#e2e8f0", transition: "background 0.2s", flexShrink: 0 }}>
+                  <div style={{ width: 40, height: 22, borderRadius: 11, position: "relative", background: newMarket.is_trending ? "#EF4444" : "#e8ecf0", transition: "background 0.2s", flexShrink: 0 }}>
                     <div style={{ position: "absolute", top: 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 0.2s", left: newMarket.is_trending ? 21 : 3 }} />
                   </div>
                   <div>
@@ -2261,7 +2302,7 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                <div style={{ height: 1, background: "#e2e8f0" }} />
+                <div style={{ height: 1, background: "#e8ecf0" }} />
 
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 9, padding: "12px 14px" }}>
                   <AlertTriangle size={13} color="#d97706" style={{ marginTop: 1, flexShrink: 0 }} />
@@ -2316,34 +2357,37 @@ export default function AdminPage() {
               </div>
 
               {/* KPIs financieros */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
                 {[
-                  { label: "Total Depósitos",      value: financials?.total_deposits     || 0, color: "#059669", bg: "#ecfdf5", border: "#6ee7b7" },
-                  { label: "Volumen Invertido",      value: financials?.total_bets_volume  || 0, color: "#2563eb", bg: "#eff6ff", border: "#93c5fd" },
-                  { label: "Pagado a Ganadores",    value: financials?.total_wins_paid    || 0, color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-                  { label: "Net Profit (House)",    value: financials?.net_profit         || 0, color: "#7c3aed", bg: "#f5f3ff", border: "#c4b5fd" },
-                  { label: "Fee Realizado (3%)",    value: financials?.house_fee_realized || 0, color: "#0369a1", bg: "#f0f9ff", border: "#7dd3fc" },
-                  { label: "Liability (riesgo)",    value: financials?.liability          || 0, color: "#be123c", bg: "#fff1f2", border: "#fca5a5" },
-                  { label: "Total Retirado (aprobado)", value: totalWithdrawn, isMoney: true,  color: "#7c3aed", bg: "#fdf4ff", border: "#e9d5ff" },
-                  { label: "Monto pendiente retiro",    value: withdrawals.filter((w) => w.status === "pending").reduce((s: number, w: any) => s + (w.amount || 0), 0), isMoney: true, color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-                  { label: "Solicitudes pendientes",    value: pendingWdCount, isMoney: false, color: "#64748b", bg: "#f8fafc", border: "#e2e8f0" },
-                ].map(({ label, value, color, bg, border, isMoney }) => (
-                  <div key={label} style={{ background: bg, borderRadius: 12, border: `1.5px solid ${border}`, padding: "18px 20px" }}>
-                    <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 8px", fontWeight: 500 }}>{label}</p>
-                    <p style={{ fontSize: 24, fontWeight: 800, color, margin: 0, fontVariantNumeric: "tabular-nums" }}>
+                  { label: "Total Depósitos",      value: financials?.total_deposits     || 0, color: "#059669", accentBg: "#ecfdf5" },
+                  { label: "Volumen Invertido",      value: financials?.total_bets_volume  || 0, color: "#2563eb", accentBg: "#eff6ff" },
+                  { label: "Pagado a Ganadores",    value: financials?.total_wins_paid    || 0, color: "#d97706", accentBg: "#fffbeb" },
+                  { label: "Net Profit (House)",    value: financials?.net_profit         || 0, color: "#7c3aed", accentBg: "#f5f3ff" },
+                  { label: "Fee Realizado (3%)",    value: financials?.house_fee_realized || 0, color: "#0369a1", accentBg: "#f0f9ff" },
+                  { label: "Liability (riesgo)",    value: financials?.liability          || 0, color: "#be123c", accentBg: "#fff1f2" },
+                  { label: "Total Retirado (aprobado)", value: totalWithdrawn, isMoney: true,  color: "#7c3aed", accentBg: "#fdf4ff" },
+                  { label: "Monto pendiente retiro",    value: withdrawals.filter((w) => w.status === "pending").reduce((s: number, w: any) => s + (w.amount || 0), 0), isMoney: true, color: "#d97706", accentBg: "#fffbeb" },
+                  { label: "Solicitudes pendientes",    value: pendingWdCount, isMoney: false, color: "#64748b", accentBg: "#f0f4f8" },
+                ].map(({ label, value, color, accentBg, isMoney }) => (
+                  <div key={label} style={{
+                    background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0",
+                    padding: "20px 22px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                  }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: "0 0 10px" }}>{label}</p>
+                    <p style={{ fontSize: 26, fontWeight: 800, color, margin: 0, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
                       {isMoney
                         ? `$${(value as number).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                         : String(value)}
                     </p>
-                    <p style={{ fontSize: 10, color: "#94a3b8", margin: "4px 0 0" }}>{isMoney ? "MXN" : "solicitudes"}</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: "5px 0 0" }}>{isMoney ? "MXN" : "solicitudes"}</p>
                   </div>
                 ))}
               </div>
 
               {/* Gráfica: volumen diario de apuestas */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: "20px 20px 12px" }}>
-                <div style={{ marginBottom: 16 }}>
-                  <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Volumen Diario de Predicciones</h3>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", padding: "22px 22px 14px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ marginBottom: 18 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.01em" }}>Volumen Diario de Predicciones</h3>
                   <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Últimos 30 días · MXN invertido</p>
                 </div>
                 {dailyVolume.length > 0 ? (
@@ -2364,16 +2408,16 @@ export default function AdminPage() {
               </div>
 
               {/* Tabla: estadísticas por categoría */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9" }}>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f4f8" }}>
                   <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Ganancias por Categoría</h3>
                   <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Basado en últimas 50 predicciones</p>
                 </div>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                    <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                       {["Categoría", "Predicciones", "Volumen MXN", "Fee Generado MXN", "% del Volumen"].map((h, i) => (
-                        <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i === 0 ? "left" : "right" as any }}>
+                        <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: i === 0 ? "left" : "right" as any }}>
                           {h}
                         </th>
                       ))}
@@ -2411,8 +2455,8 @@ export default function AdminPage() {
               </div>
 
               {/* Mercados abiertos con su exposición */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Exposición por Mercado Abierto</h3>
                     <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Pool activo · riesgo del banco por mercado</p>
@@ -2423,7 +2467,7 @@ export default function AdminPage() {
                 </div>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                    <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                       {[
                         { label: "Mercado", align: "left" },
                         { label: "Categoría", align: "left" },
@@ -2432,7 +2476,7 @@ export default function AdminPage() {
                         { label: "SÍ %", align: "center" },
                         { label: "Odds", align: "center" },
                       ].map(({ label, align }) => (
-                        <th key={label} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: align as any }}>
+                        <th key={label} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: align as any }}>
                           {label}
                         </th>
                       ))}
@@ -2469,9 +2513,9 @@ export default function AdminPage() {
               </div>
 
               {/* ══ SEGURIDAD E INTEGRIDAD FINANCIERA ══ */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                 {/* Header */}
-                <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                <div style={{ padding: "16px 20px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 34, height: 34, borderRadius: 8, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <ShieldCheck size={17} color="#2563eb" />
@@ -2614,9 +2658,9 @@ export default function AdminPage() {
                     </div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
-                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                           {["Fecha", "Activo Real", "Pasivo Total", "Diferencia", "Estado"].map((h, i) => (
-                            <th key={h} style={{ padding: "9px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i === 0 ? "left" : "right" as any }}>
+                            <th key={h} style={{ padding: "9px 16px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: i === 0 ? "left" : "right" as any }}>
                               {h}
                             </th>
                           ))}
@@ -2653,8 +2697,8 @@ export default function AdminPage() {
               </div>
 
               {/* Tabla: retiros de usuarios */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Retiros de Usuarios</h3>
                     <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Últimas solicitudes · todos los estados</p>
@@ -2672,9 +2716,9 @@ export default function AdminPage() {
                 ) : (
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
-                      <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                      <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                         {["Usuario", "Monto", "Estado", "Banco", "Fecha"].map((h, i) => (
-                          <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: i > 0 ? "right" as any : "left" }}>
+                          <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: i > 0 ? "right" as any : "left" }}>
                             {h}
                           </th>
                         ))}
@@ -2755,9 +2799,9 @@ export default function AdminPage() {
                       { label: "Última diferencia",    value: `${last.gap >= 0 ? "+" : ""}$${(last.gap || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, color: last.is_balanced ? "#059669" : "#be123c", bg: last.is_balanced ? "#ecfdf5" : "#fff1f2", border: last.is_balanced ? "#6ee7b7" : "#fca5a5" },
                       { label: "Total auditorías",     value: String(auditLog.length), color: "#0369a1", bg: "#f0f9ff", border: "#7dd3fc" },
                     ].map(({ label, value, color, bg, border }) => (
-                      <div key={label} style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: "16px 18px" }}>
-                        <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 6px" }}>{label}</p>
-                        <p style={{ fontSize: 22, fontWeight: 800, color, margin: 0, fontVariantNumeric: "tabular-nums" }}>{value}</p>
+                      <div key={label} style={{ background: "#fff", border: "1px solid #e8ecf0", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: "0 0 8px" }}>{label}</p>
+                        <p style={{ fontSize: 22, fontWeight: 800, color, margin: 0, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{value}</p>
                       </div>
                     ))}
                   </div>
@@ -2765,8 +2809,8 @@ export default function AdminPage() {
               })()}
 
               {/* Tabla completa */}
-              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Historial de auditorías</h3>
                     <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>{auditLog.length} registros · ordenados por fecha descendente</p>
@@ -2782,7 +2826,7 @@ export default function AdminPage() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
-                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                           {[
                             { label: "Fecha y hora", align: "left" },
                             { label: "Ejecutado por", align: "left" },
@@ -2794,7 +2838,7 @@ export default function AdminPage() {
                             { label: "Liability bets", align: "right" },
                             { label: "Estado", align: "center" },
                           ].map(({ label, align }) => (
-                            <th key={label} style={{ padding: "10px 14px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: align as any, whiteSpace: "nowrap" }}>
+                            <th key={label} style={{ padding: "10px 14px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: align as any, whiteSpace: "nowrap" }}>
                               {label}
                             </th>
                           ))}
@@ -2864,22 +2908,22 @@ export default function AdminPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                 {/* KPIs */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
                   {[
-                    { label: "Solicitudes pendientes", value: pending.length, color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-                    { label: "Monto pendiente (MXN)",  value: `$${totalPending.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-                    { label: "Total procesados",        value: resolved.length, color: "#059669", bg: "#ecfdf5", border: "#6ee7b7" },
-                  ].map(({ label, value, color, bg, border }) => (
-                    <div key={label} style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: "18px 20px" }}>
-                      <p style={{ fontSize: 28, fontWeight: 800, color, lineHeight: 1, margin: 0, fontVariantNumeric: "tabular-nums" }}>{value}</p>
-                      <p style={{ fontSize: 11, color: "#64748b", marginTop: 6, margin: "6px 0 0" }}>{label}</p>
+                    { label: "Solicitudes pendientes", value: pending.length, color: "#d97706" },
+                    { label: "Monto pendiente (MXN)",  value: `$${totalPending.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, color: "#d97706" },
+                    { label: "Total procesados",        value: resolved.length, color: "#059669" },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} style={{ background: "#fff", border: "1px solid #e8ecf0", borderRadius: 14, padding: "20px 22px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: "0 0 10px" }}>{label}</p>
+                      <p style={{ fontSize: 28, fontWeight: 800, color, lineHeight: 1, margin: 0, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{value}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Solicitudes pendientes */}
-                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                  <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9" }}>
+                <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                  <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f4f8" }}>
                     <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Solicitudes pendientes</h3>
                     <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Requieren acción del administrador</p>
                   </div>
@@ -2891,9 +2935,9 @@ export default function AdminPage() {
                   ) : (
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
-                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                           {["Usuario", "Monto", "CLABE / Banco", "Titular", "Fecha", "Acciones"].map((h) => (
-                            <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: "left" }}>
+                            <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left" }}>
                               {h}
                             </th>
                           ))}
@@ -2969,16 +3013,16 @@ export default function AdminPage() {
 
                 {/* Historial de retiros procesados */}
                 {resolved.length > 0 && (
-                  <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-                    <div style={{ padding: "14px 20px", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                    <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f4f8" }}>
                       <h3 style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>Historial de retiros</h3>
                       <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>Solicitudes ya procesadas</p>
                     </div>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
-                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                        <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                           {["Usuario", "Monto", "Estado", "Banco", "Fecha"].map((h) => (
-                            <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: "left" }}>
+                            <th key={h} style={{ padding: "10px 16px", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left" }}>
                               {h}
                             </th>
                           ))}
@@ -3070,10 +3114,10 @@ export default function AdminPage() {
                     });
 
                   return (
-                    <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+                    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
 
                       {/* Header tabla */}
-                      <div style={{ padding: "16px 20px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                      <div style={{ padding: "16px 20px", borderBottom: "1px solid #f0f4f8", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                         <div>
                           <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0 }}>Todos los mercados</h3>
                           <p style={{ fontSize: 11, color: "#94a3b8", margin: "3px 0 0" }}>{filtered.length} de {markets.length} mercados</p>
@@ -3084,7 +3128,7 @@ export default function AdminPage() {
                             value={histSearch}
                             onChange={(e) => setHistSearch(e.target.value)}
                             placeholder="Buscar mercado..."
-                            style={{ border: "1.5px solid #e2e8f0", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#0f172a", background: "#f8fafc", outline: "none", fontFamily: "inherit", width: 200 }}
+                            style={{ border: "1.5px solid #e8ecf0", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#0f172a", background: "#f8fafc", outline: "none", fontFamily: "inherit", width: 200 }}
                           />
                           {/* Filtro status */}
                           {(["all", "open", "closed", "resolved"] as const).map((f) => (
@@ -3093,7 +3137,7 @@ export default function AdminPage() {
                               onClick={() => setHistFilter(f)}
                               style={{
                                 padding: "5px 12px", borderRadius: 6, border: "1.5px solid",
-                                borderColor: histFilter === f ? "#2563eb" : "#e2e8f0",
+                                borderColor: histFilter === f ? "#2563eb" : "#e8ecf0",
                                 background: histFilter === f ? "#eff6ff" : "#fff",
                                 color: histFilter === f ? "#1d4ed8" : "#64748b",
                                 fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
@@ -3106,7 +3150,7 @@ export default function AdminPage() {
                           <select
                             value={histSort}
                             onChange={(e) => setHistSort(e.target.value as any)}
-                            style={{ border: "1.5px solid #e2e8f0", borderRadius: 8, padding: "6px 10px", fontSize: 11, color: "#475569", background: "#f8fafc", outline: "none", fontFamily: "inherit", cursor: "pointer" }}
+                            style={{ border: "1.5px solid #e8ecf0", borderRadius: 8, padding: "6px 10px", fontSize: 11, color: "#475569", background: "#f8fafc", outline: "none", fontFamily: "inherit", cursor: "pointer" }}
                           >
                             <option value="date">Más reciente</option>
                             <option value="pool">Mayor pozo</option>
@@ -3119,9 +3163,9 @@ export default function AdminPage() {
                       <div style={{ overflowX: "auto" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                           <thead>
-                            <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                            <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e8ecf0" }}>
                               {["Mercado", "Categoría", "Tipo", "Estado", "Resultado", "Pozo MXN", "Apostadores", "Sí %", "No %", "Cuota Sí", "Cuota No", "Cierre"].map((h) => (
-                                <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
+                                <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>{h}</th>
                               ))}
                             </tr>
                           </thead>
@@ -3148,7 +3192,7 @@ export default function AdminPage() {
                                 <tr
                                   key={m.id}
                                   style={{
-                                    borderBottom: "1px solid #f1f5f9",
+                                    borderBottom: "1px solid #f0f4f8",
                                     background: idx % 2 === 0 ? "#fff" : "#fafafa",
                                     transition: "background 0.15s",
                                   }}
@@ -3186,7 +3230,7 @@ export default function AdminPage() {
                                       padding: "3px 9px", borderRadius: 20, fontSize: 10, fontWeight: 800,
                                       background: isOpen ? "#dcfce7" : "#f1f5f9",
                                       color: isOpen ? "#15803d" : "#475569",
-                                      border: `1px solid ${isOpen ? "#86efac" : "#e2e8f0"}`,
+                                      border: `1px solid ${isOpen ? "#86efac" : "#e8ecf0"}`,
                                     }}>
                                       <span style={{ width: 6, height: 6, borderRadius: "50%", background: isOpen ? "#22c55e" : "#94a3b8", flexShrink: 0 }} />
                                       {isOpen ? "Activo" : "Cerrado"}
@@ -3235,7 +3279,7 @@ export default function AdminPage() {
                           </tbody>
                           {filtered.length > 0 && (
                             <tfoot>
-                              <tr style={{ background: "#f8fafc", borderTop: "2px solid #e2e8f0" }}>
+                              <tr style={{ background: "#f8fafc", borderTop: "2px solid #e8ecf0" }}>
                                 <td colSpan={5} style={{ padding: "10px 14px", fontSize: 11, fontWeight: 700, color: "#64748b" }}>
                                   TOTALES · {filtered.length} mercados
                                 </td>
@@ -3323,7 +3367,7 @@ export default function AdminPage() {
                 {/* Empty state */}
                 {drafts.length === 0 && (
                   <div style={{
-                    background: "#fff", border: "2px dashed #e2e8f0", borderRadius: 16,
+                    background: "#fff", border: "2px dashed #e8ecf0", borderRadius: 16,
                     padding: "64px 20px", textAlign: "center",
                   }}>
                     <div style={{
@@ -3347,7 +3391,7 @@ export default function AdminPage() {
                 {drafts.length > 0 && (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }}>
                     {drafts.map((m: any) => {
-                      const cat = catTheme[m.category] ?? { bg: "#f8fafc", color: "#64748b", border: "#e2e8f0" };
+                      const cat = catTheme[m.category] ?? { bg: "#f8fafc", color: "#64748b", border: "#e8ecf0" };
                       const yesP = m.yes_percent ?? 50;
                       const noP  = 100 - yesP;
                       const isPublishing = actionLoading === m.id + "publish";
@@ -3356,7 +3400,7 @@ export default function AdminPage() {
                       return (
                         <div key={m.id} style={{
                           background: "#fff",
-                          border: "1px solid #e2e8f0",
+                          border: "1px solid #e8ecf0",
                           borderRadius: 14,
                           padding: "20px",
                           display: "flex",
@@ -3376,7 +3420,7 @@ export default function AdminPage() {
                               </span>
                               <span style={{
                                 background: "#f8fafc", color: "#475569",
-                                border: "1px solid #e2e8f0",
+                                border: "1px solid #e8ecf0",
                                 borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 600,
                               }}>
                                 {m.subject_name}

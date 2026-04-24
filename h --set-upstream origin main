@@ -1,0 +1,10 @@
+[33mc156c95[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m security: CSP headers y validación de contraseña
+[33m451b1be[m[33m ([m[1;31morigin/main[m[33m)[m fix: move NewsPanel to second position in sidebar
+[33m34b3b35[m fix: move markets to left, stats sidebar to right
+[33mdeb9cb6[m feat: use Clearbit logos for stocks and move stats sidebar to left
+[33mdf25025[m remove: hide FeaturedSection hero from homepage
+[33m32fae9e[m feat: redesign FeaturedSection to Polymarket style
+[33m2099444[m feat: StatsSection with sparkline charts for IPC, BTC, ETH
+[33m4c49931[m fix: try new Google Trends endpoint with real browser headers
+[33m6a0264e[m fix: TrendsWidget calls fetch-market-data edge function directly
+[33m8206415[m fix: TrendsWidget tries 3 CORS proxies with fallback chain
