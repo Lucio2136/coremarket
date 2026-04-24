@@ -2016,23 +2016,46 @@ export default function AdminPage() {
                     </div>
 
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                      <input
-                        type="url"
-                        value={newMarket.subject_photo_url}
-                        onChange={(e) => {
-                          setNewMarket({ ...newMarket, subject_photo_url: e.target.value });
-                          if (!e.target.value.trim()) setWikiSource(null);
-                        }}
-                        placeholder="Se busca automático al escribir el nombre…"
-                        style={{
-                          width: "100%", border: "1.5px solid #e8ecf0", borderRadius: 9,
-                          padding: "9px 14px", fontSize: 12, color: "#0f172a",
-                          background: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box",
-                        }}
-                        onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
-                        onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
-                      />
-                      <div style={{ display: "flex", gap: 6 }}>
+                      {/* URL input con botón pegar */}
+                      <div style={{ position: "relative", display: "flex", gap: 6 }}>
+                        <input
+                          type="url"
+                          value={newMarket.subject_photo_url}
+                          onChange={(e) => {
+                            setNewMarket({ ...newMarket, subject_photo_url: e.target.value });
+                            if (!e.target.value.trim()) setWikiSource(null);
+                          }}
+                          placeholder="https://ejemplo.com/foto.jpg"
+                          style={{
+                            flex: 1, border: "1.5px solid #e8ecf0", borderRadius: 9,
+                            padding: "9px 14px", fontSize: 12, color: "#0f172a",
+                            background: "#f8fafc", outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+                          }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = "#2563eb"; e.currentTarget.style.background = "#fff"; }}
+                          onBlur={(e) => { e.currentTarget.style.borderColor = "#e8ecf0"; e.currentTarget.style.background = "#f8fafc"; }}
+                        />
+                        <button
+                          type="button"
+                          title="Pegar URL del portapapeles"
+                          onClick={async () => {
+                            try {
+                              const text = await navigator.clipboard.readText();
+                              if (text.trim()) {
+                                setNewMarket((prev) => ({ ...prev, subject_photo_url: text.trim() }));
+                                setWikiSource(null);
+                              }
+                            } catch { /* permisos de clipboard denegados */ }
+                          }}
+                          style={{
+                            padding: "9px 12px", borderRadius: 9, border: "1.5px solid #e8ecf0",
+                            background: "#f8fafc", color: "#475569", fontSize: 12, fontWeight: 600,
+                            cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap",
+                          }}
+                        >
+                          📋 Pegar
+                        </button>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         {/* Re-buscar en Wikipedia */}
                         <button
                           type="button"
@@ -2074,7 +2097,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-                    Se busca automáticamente en Wikipedia al escribir el nombre. Puedes pegar otra URL o dejarlo vacío para usar las iniciales.
+                    Se busca automáticamente al escribir el nombre. También puedes pegar cualquier URL de imagen directamente.
                   </p>
                 </div>
 
