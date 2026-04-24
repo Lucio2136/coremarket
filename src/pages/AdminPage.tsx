@@ -183,13 +183,9 @@ export default function AdminPage() {
       setWikiLoading(true);
       setWikiSource(null);
       const url = await fetchWikiPhoto(name);
-      if (url) {
-        setNewMarket((prev) => ({
-          ...prev,
-          subject_photo_url: prev.subject_photo_url.trim() ? prev.subject_photo_url : url,
-        }));
-        setWikiSource("es"); // aproximación — fetchWikiPhoto intenta es primero
-      }
+      // Siempre actualizar: el nombre cambió, la foto debe cambiar también
+      setNewMarket((prev) => ({ ...prev, subject_photo_url: url ?? "" }));
+      if (url) setWikiSource("es");
       setWikiLoading(false);
     }, 600);
 
@@ -2039,14 +2035,15 @@ export default function AdminPage() {
                         <button
                           type="button"
                           disabled={wikiLoading || !newMarket.subject_name.trim()}
-                          onClick={() => {
-                            // Forzar re-búsqueda limpiando la foto y re-disparando el effect
+                          onClick={async () => {
+                            if (wikiLoading || !newMarket.subject_name.trim()) return;
                             setWikiSource(null);
                             setNewMarket((prev) => ({ ...prev, subject_photo_url: "" }));
-                            // Pequeño hack: cambiar el nombre por sí mismo para re-disparar el effect
-                            const name = newMarket.subject_name;
-                            setNewMarket((prev) => ({ ...prev, subject_name: name + " ", subject_photo_url: "" }));
-                            setTimeout(() => setNewMarket((prev) => ({ ...prev, subject_name: name })), 50);
+                            setWikiLoading(true);
+                            const url = await fetchWikiPhoto(newMarket.subject_name.trim());
+                            setNewMarket((prev) => ({ ...prev, subject_photo_url: url ?? "" }));
+                            if (url) setWikiSource("es");
+                            setWikiLoading(false);
                           }}
                           style={{
                             padding: "5px 10px", borderRadius: 7, border: "1.5px solid #e8ecf0",
