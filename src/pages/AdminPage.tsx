@@ -101,8 +101,7 @@ export default function AdminPage() {
   const [auditLog, setAuditLog]           = useState<any[]>([]);
   const [auditLoading, setAuditLoading]   = useState(false);
   const [generatingMarkets, setGeneratingMarkets] = useState(false);
-  const [publishConfirm, setPublishConfirm] = useState<string | null>(null);
-  const [publishPhoto, setPublishPhoto]     = useState("");
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
 
   // Historial
   const [histFilter, setHistFilter] = useState<"all" | "open" | "closed" | "resolved">("all");
@@ -395,19 +394,39 @@ export default function AdminPage() {
     finally { setActionLoading(null); }
   };
 
-  const publishDraft = async (marketId: string, photoUrl: string) => {
+  const publishDraft = async (marketId: string) => {
     setActionLoading(marketId + "publish");
     try {
-      const update: Record<string, any> = { status: "open" };
-      if (photoUrl.trim()) update.subject_photo_url = photoUrl.trim();
-      const { error } = await supabase.from("markets").update(update).eq("id", marketId);
+      const { error } = await supabase.from("markets").update({ status: "open" }).eq("id", marketId);
       if (error) throw error;
       toast.success("Mercado publicado — ya es visible al público");
-      setPublishConfirm(null);
-      setPublishPhoto("");
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     finally { setActionLoading(null); }
+  };
+
+  const loadDraft = (m: any) => {
+    setNewMarket({
+      title:             m.title             ?? "",
+      subject_name:      m.subject_name      ?? "",
+      category:          m.category          ?? "Política",
+      market_type:       m.market_type       ?? "binary",
+      yes_odds:          m.yes_odds          ?? 2.0,
+      no_odds:           m.no_odds           ?? 2.0,
+      yes_percent:       m.yes_percent       ?? 50,
+      no_percent:        100 - (m.yes_percent ?? 50),
+      closes_at:         m.closes_at         ? m.closes_at.slice(0, 16) : "",
+      is_trending:       m.is_trending       ?? false,
+      scalar_min:        m.scalar_min        ?? 0,
+      scalar_max:        m.scalar_max        ?? 100,
+      scalar_unit:       m.scalar_unit       ?? "",
+      subject_photo_url: m.subject_photo_url ?? "",
+      description:       m.description       ?? "",
+      rules:             m.rules             ?? "",
+    });
+    setEditingDraftId(m.id);
+    setTab("create");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const deleteDraft = async (marketId: string) => {
@@ -567,9 +586,24 @@ export default function AdminPage() {
         ? { scalar_min, scalar_max, scalar_unit: scalar_unit.trim() }
         : {};
       const photoField = subject_photo_url.trim() ? { subject_photo_url: subject_photo_url.trim() } : {};
-      const { data: marketRow, error } = await supabase.from("markets").insert({
-        ...baseMarketData, ...scalarFields, ...photoField, total_pool: 0, bettor_count: 0, status: "open",
-      }).select("id").single();
+      const marketPayload = { ...baseMarketData, ...scalarFields, ...photoField, status: "open" };
+
+      let marketRow: { id: string } | null = null;
+      if (editingDraftId) {
+        // Actualizar el borrador existente en lugar de crear uno nuevo
+        const { data, error } = await supabase.from("markets")
+          .update(marketPayload)
+          .eq("id", editingDraftId)
+          .select("id").single();
+        if (error) throw error;
+        marketRow = data;
+      } else {
+        const { data, error } = await supabase.from("markets").insert({
+          ...marketPayload, total_pool: 0, bettor_count: 0,
+        }).select("id").single();
+        if (error) throw error;
+        marketRow = data;
+      }
       if (error) throw error;
 
       // Si es mercado múltiple, insertar las opciones
@@ -596,7 +630,8 @@ export default function AdminPage() {
         }
       }
 
-      toast.success("¡Mercado creado!");
+      toast.success(editingDraftId ? "¡Borrador publicado!" : "¡Mercado creado!");
+      setEditingDraftId(null);
       setNewMarket({ title: "", subject_name: "", category: "Política",
         market_type: "binary",
         yes_odds: 2.0, no_odds: 2.0, yes_percent: 50, no_percent: 50,
@@ -2310,27 +2345,42 @@ export default function AdminPage() {
 
                 <div style={{ height: 1, background: "#e8ecf0" }} />
 
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 9, padding: "12px 14px" }}>
-                  <AlertTriangle size={13} color="#d97706" style={{ marginTop: 1, flexShrink: 0 }} />
-                  <p style={{ fontSize: 12, color: "#92400e", margin: 0, lineHeight: 1.6 }}>
-                    Una vez creado, el mercado será visible para todos los usuarios inmediatamente.
-                  </p>
-                </div>
+                {editingDraftId ? (
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: 9, padding: "12px 14px" }}>
+                    <Sparkles size={13} color="#2563eb" style={{ marginTop: 1, flexShrink: 0 }} />
+                    <p style={{ fontSize: 12, color: "#1e40af", margin: 0, lineHeight: 1.6 }}>
+                      Editando borrador de IA — al publicar se reemplazará el borrador y quedará visible para todos.{" "}
+                      <button
+                        onClick={() => { setEditingDraftId(null); setNewMarket({ title: "", subject_name: "", category: "Política", market_type: "binary", yes_odds: 2.0, no_odds: 2.0, yes_percent: 50, no_percent: 50, closes_at: "", is_trending: false, scalar_min: 0, scalar_max: 100, scalar_unit: "", subject_photo_url: "", description: "", rules: "" }); }}
+                        style={{ background: "none", border: "none", color: "#2563eb", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 12, textDecoration: "underline" }}
+                      >
+                        Cancelar
+                      </button>
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: 9, padding: "12px 14px" }}>
+                    <AlertTriangle size={13} color="#d97706" style={{ marginTop: 1, flexShrink: 0 }} />
+                    <p style={{ fontSize: 12, color: "#92400e", margin: 0, lineHeight: 1.6 }}>
+                      Una vez creado, el mercado será visible para todos los usuarios inmediatamente.
+                    </p>
+                  </div>
+                )}
 
                 <button
                   onClick={createMarket}
                   disabled={!!actionLoading}
                   style={{
                     width: "100%", padding: "13px", borderRadius: 9,
-                    background: "#1d4ed8", color: "#fff",
+                    background: editingDraftId ? "#16a34a" : "#1d4ed8", color: "#fff",
                     border: "none", fontSize: 14, fontWeight: 700, cursor: "pointer",
                     opacity: actionLoading ? 0.5 : 1,
                     fontFamily: "inherit", letterSpacing: "-0.01em",
                   }}
-                  onMouseEnter={(e) => { if (!actionLoading) (e.currentTarget as HTMLButtonElement).style.background = "#1e40af"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#1d4ed8"; }}
+                  onMouseEnter={(e) => { if (!actionLoading) (e.currentTarget as HTMLButtonElement).style.background = editingDraftId ? "#15803d" : "#1e40af"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = editingDraftId ? "#16a34a" : "#1d4ed8"; }}
                 >
-                  {actionLoading === "create" ? "Creando..." : "Crear mercado"}
+                  {actionLoading === "create" ? "Publicando..." : editingDraftId ? "✓ Publicar mercado" : "Crear mercado"}
                 </button>
 
               </div>
@@ -3481,83 +3531,23 @@ export default function AdminPage() {
                           {/* Divider */}
                           <div style={{ height: 1, background: "#f1f5f9" }} />
 
-                          {/* Paso de foto antes de publicar */}
-                          {publishConfirm === m.id && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                              <p style={{ fontSize: 11, fontWeight: 700, color: "#0f172a", margin: 0, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                                Foto del mercado
-                              </p>
-                              <input
-                                type="url"
-                                placeholder="https://... URL de la imagen"
-                                value={publishPhoto}
-                                onChange={(e) => setPublishPhoto(e.target.value)}
-                                style={{
-                                  width: "100%", border: "1.5px solid #e2e8f0", borderRadius: 8,
-                                  padding: "8px 10px", fontSize: 12, color: "#0f172a",
-                                  outline: "none", boxSizing: "border-box", fontFamily: "inherit",
-                                }}
-                              />
-                              {publishPhoto.trim() && (
-                                <img
-                                  src={publishPhoto.trim()}
-                                  alt="preview"
-                                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                                  style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 8, border: "1px solid #e8ecf0" }}
-                                />
-                              )}
-                              <div style={{ display: "flex", gap: 8 }}>
-                                <button
-                                  onClick={() => publishDraft(m.id, publishPhoto)}
-                                  disabled={!!actionLoading}
-                                  style={{
-                                    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                                    padding: "10px 14px", borderRadius: 8,
-                                    background: isPublishing ? "#dcfce7" : "#16a34a",
-                                    color: isPublishing ? "#15803d" : "#fff",
-                                    border: "none", fontSize: 12, fontWeight: 700,
-                                    cursor: actionLoading ? "not-allowed" : "pointer",
-                                    fontFamily: "inherit",
-                                  }}
-                                >
-                                  <CheckCircle size={13} />
-                                  {isPublishing ? "Publicando..." : "Confirmar publicación"}
-                                </button>
-                                <button
-                                  onClick={() => { setPublishConfirm(null); setPublishPhoto(""); }}
-                                  style={{
-                                    padding: "10px 12px", borderRadius: 8, border: "1px solid #e8ecf0",
-                                    background: "#f8fafc", color: "#64748b", fontSize: 12, fontWeight: 600,
-                                    cursor: "pointer", fontFamily: "inherit",
-                                  }}
-                                >
-                                  Cancelar
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
                           {/* Actions */}
                           <div style={{ display: "flex", gap: 8 }}>
+                            {/* Editar y publicar — carga el borrador en el formulario */}
                             <button
-                              onClick={() => {
-                                setPublishConfirm(m.id);
-                                setPublishPhoto(m.subject_photo_url || "");
-                              }}
-                              disabled={!!actionLoading || publishConfirm === m.id}
+                              onClick={() => loadDraft(m)}
+                              disabled={!!actionLoading}
                               style={{
                                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                                 padding: "10px 14px", borderRadius: 8,
-                                background: publishConfirm === m.id ? "#f0fdf4" : "#16a34a",
-                                color: publishConfirm === m.id ? "#15803d" : "#fff",
-                                border: publishConfirm === m.id ? "1.5px solid #bbf7d0" : "none",
-                                fontSize: 12, fontWeight: 700,
-                                cursor: (actionLoading || publishConfirm === m.id) ? "not-allowed" : "pointer",
+                                background: "#2563eb", color: "#fff",
+                                border: "none", fontSize: 12, fontWeight: 700,
+                                cursor: actionLoading ? "not-allowed" : "pointer",
                                 fontFamily: "inherit",
                               }}
                             >
-                              <CheckCircle size={13} />
-                              {isPublishing ? "Publicando..." : "Publicar"}
+                              <Pencil size={13} />
+                              Editar y publicar
                             </button>
                             <button
                               onClick={() => deleteDraft(m.id)}
