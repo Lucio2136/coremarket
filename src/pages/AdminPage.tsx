@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useSecurityLog } from "@/hooks/use-security-log";
 import { getSubjectPhoto } from "@/data/subject-photos";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid,
@@ -12,10 +13,10 @@ import {
   CheckCircle, XCircle, Trash2, RefreshCw, DollarSign,
   Activity, Clock, Flame, AlertTriangle, ArrowUpRight,
   Landmark, FileText, ArrowDownCircle, Building2, User, ShieldCheck,
-  ShieldAlert, Zap, Pencil, X, PlusCircle, MinusCircle, ScrollText, Sparkles,
+  ShieldAlert, Zap, Pencil, X, PlusCircle, MinusCircle, ScrollText, Sparkles, Trophy,
 } from "lucide-react";
 
-type Tab = "dashboard" | "markets" | "users" | "create" | "treasury" | "withdrawals" | "auditlog" | "historial" | "borradores";
+type Tab = "dashboard" | "markets" | "users" | "create" | "treasury" | "withdrawals" | "auditlog" | "historial" | "borradores" | "deportes";
 
 /** Abreviado solo para ejes de gráficas */
 function fmtMXN(n: number) {
@@ -37,6 +38,7 @@ const SIDEBAR_ITEMS = [
   { key: "users",       icon: Users,             label: "Usuarios"      },
   { key: "create",      icon: Plus,              label: "Nuevo mercado" },
   { key: "borradores",  icon: Sparkles,          label: "Borradores IA" },
+  { key: "deportes",    icon: Trophy,            label: "Deportes"      },
   { key: "treasury",    icon: Landmark,          label: "Tesorería"     },
   { key: "withdrawals", icon: ArrowDownCircle,   label: "Retiros"       },
   { key: "auditlog",    icon: ScrollText,        label: "Audit Log"     },
@@ -49,6 +51,7 @@ const PAGE_TITLES: Record<Tab, string> = {
   users:       "Usuarios",
   create:      "Nuevo mercado",
   borradores:  "Borradores IA",
+  deportes:    "Deportes — Partidos",
   treasury:    "Tesorería",
   withdrawals: "Gestión de Retiros",
   auditlog:    "Audit Log",
@@ -95,6 +98,7 @@ function ChartTooltip({ active, payload }: any) {
 export default function AdminPage() {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { logEvent } = useSecurityLog();
   const [tab, setTab]                   = useState<Tab>("dashboard");
   const [markets, setMarkets]             = useState<any[]>([]);
   const [users, setUsers]                 = useState<any[]>([]);
@@ -125,9 +129,22 @@ export default function AdminPage() {
     return next;
   });
 
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const [histFilter, setHistFilter] = useState<"all" | "open" | "closed" | "resolved">("all");
   const [histSearch, setHistSearch] = useState("");
   const [histSort,   setHistSort]   = useState<"pool" | "bettors" | "date">("date");
+
+  // Deportes
+  const [fixtures,          setFixtures]          = useState<any[]>([]);
+  const [sportsDate,        setSportsDate]        = useState(() => new Date().toISOString().split("T")[0]);
+  const [sportsLeagueFilter,setSportsLeagueFilter] = useState("");
+  const [sportsLoading,     setSportsLoading]     = useState(false);
 
   // Editar mercado
   const [editingMarketId, setEditingMarketId] = useState<string | null>(null);
@@ -244,12 +261,8 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) { navigate("/"); return; }
-    if (profile === null) return; // profile aún cargando
-    if (!profile?.is_admin) { navigate("/"); return; }
     fetchAll();
-  }, [user, authLoading, profile]);
+  }, []);
 
   const fetchAll = useCallback(async () => {
     setLoadingData(true);
@@ -386,6 +399,7 @@ export default function AdminPage() {
 
       const { error } = await supabase.rpc("resolve_market", params);
       if (error) throw error;
+      logEvent("market_resolved", marketId, { side, optionId });
       toast.success("Mercado resuelto — ganadores pagados");
       fetchAll();
 
@@ -408,6 +422,7 @@ export default function AdminPage() {
     try {
       const { error } = await supabase.rpc("resolve_scalar_market", { p_market_id: marketId, p_result: value });
       if (error) throw error;
+      logEvent("market_resolved_scalar", marketId, { result: value });
       toast.success("Mercado scalar resuelto — ganadores pagados");
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
@@ -419,6 +434,7 @@ export default function AdminPage() {
     try {
       const { error } = await supabase.from("markets").update({ status: "open" }).eq("id", marketId);
       if (error) throw error;
+      logEvent("market_published", marketId);
       toast.success("Mercado publicado — ya es visible al público");
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
@@ -467,6 +483,7 @@ export default function AdminPage() {
     try {
       const { error } = await supabase.from("markets").delete().eq("id", marketId);
       if (error) throw error;
+      logEvent("draft_deleted", marketId);
       toast.success("Borrador eliminado");
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
@@ -584,6 +601,7 @@ export default function AdminPage() {
     setActionLoading(marketId + "delete");
     await supabase.from("bets").delete().eq("market_id", marketId);
     await supabase.from("markets").delete().eq("id", marketId);
+    logEvent("market_deleted", marketId);
     toast.success("Mercado eliminado");
     fetchAll();
     setActionLoading(null);
@@ -661,6 +679,7 @@ export default function AdminPage() {
         }
       }
 
+      logEvent(editingDraftId ? "draft_published" : "market_created", marketRow?.id, { title: newMarket.title, category: newMarket.category });
       toast.success(editingDraftId ? "¡Borrador publicado!" : "¡Mercado creado!");
       setEditingDraftId(null);
       setNewMarket({ title: "", subject_name: "", category: "Política",
@@ -722,6 +741,7 @@ export default function AdminPage() {
         amount:      Math.abs(amount),
         description: `Ajuste manual (${amount > 0 ? "crédito" : "débito"}): ${adjustForm.reason.trim()}`,
       });
+      logEvent("balance_adjusted", userId, { username, amount, reason: adjustForm.reason.trim() });
       toast.success(`Balance de ${username} ${amount > 0 ? "acreditado" : "debitado"} en $${Math.abs(amount).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`);
       setAdjustingUserId(null);
       setAdjustForm({ amount: "", reason: "" });
@@ -736,6 +756,7 @@ export default function AdminPage() {
     try {
       const { error } = await supabase.rpc("approve_withdrawal", { p_withdrawal_id: id });
       if (error) throw error;
+      logEvent("withdrawal_approved", id, { username, amount });
       toast.success(`Retiro de ${username} marcado como pagado`);
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
@@ -748,10 +769,70 @@ export default function AdminPage() {
     try {
       const { error } = await supabase.rpc("reject_withdrawal", { p_withdrawal_id: id });
       if (error) throw error;
+      logEvent("withdrawal_rejected", id, { username, amount });
       toast.success(`Retiro rechazado — $${amount.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN devueltos a ${username}`);
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     finally { setActionLoading(null); }
+  };
+
+  // ── Deportes ────────────────────────────────────────────────────────────────
+  const fetchFixtures = async () => {
+    setSportsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-sports-data`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({ date: sportsDate }),
+        }
+      );
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setFixtures(json.fixtures ?? []);
+      if ((json.fixtures ?? []).length === 0) toast.info("No hay partidos para esa fecha");
+    } catch (err: any) {
+      toast.error(err.message || "Error cargando partidos");
+    } finally {
+      setSportsLoading(false);
+    }
+  };
+
+  const createMarketFromFixture = async (fixture: any) => {
+    setActionLoading("sport-" + fixture.id);
+    try {
+      const closes = new Date(`${fixture.date}T${fixture.time || "18:00"}:00`);
+      closes.setHours(closes.getHours() - 1);
+      const { error } = await supabase.from("markets").insert({
+        title:        `¿Ganará ${fixture.home_team} ante ${fixture.away_team}?`,
+        subject_name: fixture.home_team,
+        category:     "Deportes",
+        market_type:  "binary",
+        yes_percent:  50,
+        yes_odds:     2.0,
+        no_odds:      2.0,
+        closes_at:    closes.toISOString(),
+        status:       "draft",
+        total_pool:   0,
+        bettor_count: 0,
+        is_trending:  false,
+        description:  `${fixture.league_name} · ${fixture.home_team} vs ${fixture.away_team}. Sí = gana ${fixture.home_team}. No = gana ${fixture.away_team} o empate.`,
+      });
+      if (error) throw error;
+      logEvent("market_created", "sports-fixture", { fixture_id: fixture.id, home: fixture.home_team, away: fixture.away_team });
+      toast.success("Borrador creado — revísalo en Borradores IA");
+      setTab("borradores");
+      fetchAll();
+    } catch (err: any) {
+      toast.error(err.message || "Error creando mercado");
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleSignOut = async () => { await signOut(); navigate("/"); };
@@ -771,6 +852,7 @@ export default function AdminPage() {
         p_admin_email: user?.email ?? "admin",
       });
       if (error) throw error;
+      logEvent("system_freeze_toggled", "system", { frozen: !isFrozen });
       setIsFrozen(!isFrozen);
       toast[!isFrozen ? "warning" : "success"](
         !isFrozen
@@ -940,12 +1022,10 @@ export default function AdminPage() {
     <div style={{ minHeight: "100vh", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#94a3b8", fontSize: 13 }}>
         <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} />
-        Verificando acceso...
+        Cargando...
       </div>
     </div>
   );
-
-  if (!profile?.is_admin) return null;
 
   const chartData = markets
     .filter((m) => m.total_pool > 0)
@@ -976,7 +1056,7 @@ export default function AdminPage() {
         width: 232, flexShrink: 0, position: "fixed", height: "100%",
         background: "#ffffff",
         borderRight: "1px solid #e8ecf0",
-        display: "flex", flexDirection: "column", zIndex: 20,
+        display: isMobile ? "none" : "flex", flexDirection: "column", zIndex: 20,
         boxShadow: "2px 0 12px rgba(0,0,0,0.04)",
       }}>
         {/* Logo */}
@@ -1067,14 +1147,14 @@ export default function AdminPage() {
       </aside>
 
       {/* ══ Main ══ */}
-      <main style={{ marginLeft: 232, flex: 1, minHeight: "100vh" }}>
+      <main style={{ marginLeft: isMobile ? 0 : 232, flex: 1, minHeight: "100vh", paddingBottom: isMobile ? 72 : 0 }}>
 
         {/* Top bar */}
         <div style={{
           position: "sticky", top: 0, zIndex: 10,
           background: isFrozen ? "#fff1f2" : "#ffffff",
           borderBottom: `1px solid ${isFrozen ? "#fca5a5" : "#e8ecf0"}`,
-          padding: "0 28px", height: 60,
+          padding: isMobile ? "0 14px" : "0 28px", height: 60,
           display: "flex", alignItems: "center", justifyContent: "space-between",
           transition: "background 0.3s, border-color 0.3s",
           boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
@@ -1169,14 +1249,14 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div style={{ padding: 28 }}>
+        <div style={{ padding: isMobile ? 12 : 28 }}>
 
           {/* ══ DASHBOARD ══ */}
           {tab === "dashboard" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
               {/* KPIs */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)", gap: isMobile ? 10 : 16 }}>
                 {kpiData.map(({ label, value, sub, icon: Icon }, i) => {
                   const theme = KPI_THEMES[i];
                   return (
@@ -1583,29 +1663,37 @@ export default function AdminPage() {
                                   onClick={() => resolveMarket(market.id, "yes")}
                                   disabled={!!actionLoading}
                                   style={{
-                                    display: "flex", alignItems: "center", gap: 5,
-                                    padding: "6px 12px", borderRadius: 7, cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                    padding: isMobile ? "13px 0" : "6px 12px",
+                                    flex: isMobile ? 1 : undefined,
+                                    minHeight: isMobile ? 48 : undefined,
+                                    borderRadius: 9, cursor: "pointer",
                                     background: "#dcfce7", color: "#15803d",
-                                    border: "1.5px solid #86efac", fontSize: 11, fontWeight: 700,
+                                    border: "1.5px solid #86efac",
+                                    fontSize: isMobile ? 14 : 11, fontWeight: 800,
                                     opacity: actionLoading ? 0.4 : 1,
                                   }}
                                 >
-                                  <CheckCircle size={11} />
-                                  {actionLoading === market.id + "yes" ? "Procesando..." : "SÍ gana"}
+                                  <CheckCircle size={isMobile ? 16 : 11} />
+                                  {actionLoading === market.id + "yes" ? "..." : "✅ SÍ gana"}
                                 </button>
                                 <button
                                   onClick={() => resolveMarket(market.id, "no")}
                                   disabled={!!actionLoading}
                                   style={{
-                                    display: "flex", alignItems: "center", gap: 5,
-                                    padding: "6px 12px", borderRadius: 7, cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                                    padding: isMobile ? "13px 0" : "6px 12px",
+                                    flex: isMobile ? 1 : undefined,
+                                    minHeight: isMobile ? 48 : undefined,
+                                    borderRadius: 9, cursor: "pointer",
                                     background: "#ffe4e6", color: "#be123c",
-                                    border: "1.5px solid #fca5a5", fontSize: 11, fontWeight: 700,
+                                    border: "1.5px solid #fca5a5",
+                                    fontSize: isMobile ? 14 : 11, fontWeight: 800,
                                     opacity: actionLoading ? 0.4 : 1,
                                   }}
                                 >
-                                  <XCircle size={11} />
-                                  {actionLoading === market.id + "no" ? "Procesando..." : "NO gana"}
+                                  <XCircle size={isMobile ? 16 : 11} />
+                                  {actionLoading === market.id + "no" ? "..." : "❌ NO gana"}
                                 </button>
                               </>
                             )}
@@ -3694,8 +3782,224 @@ export default function AdminPage() {
             );
           })()}
 
+          {/* ══ DEPORTES ══ */}
+          {tab === "deportes" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+              {/* Buscador */}
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", padding: "20px 24px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 9, background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Trophy size={15} color="#16a34a" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0 }}>Importar partidos — AllSportsApi</h3>
+                    <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>Selecciona una fecha y crea mercados desde los partidos del día</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.06em" }}>Fecha</label>
+                    <input
+                      type="date"
+                      value={sportsDate}
+                      onChange={(e) => setSportsDate(e.target.value)}
+                      style={{ padding: "8px 12px", border: "1.5px solid #e2e8f0", borderRadius: 8, fontSize: 13, color: "#0f172a", outline: "none", fontFamily: "inherit", background: "#fafafa" }}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748b", marginBottom: 5, textTransform: "uppercase", letterSpacing: "0.06em" }}>Filtrar liga (opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="ej. Liga MX, Champions, Premier..."
+                      value={sportsLeagueFilter}
+                      onChange={(e) => setSportsLeagueFilter(e.target.value)}
+                      style={{ padding: "8px 12px", border: "1.5px solid #e2e8f0", borderRadius: 8, fontSize: 13, color: "#0f172a", outline: "none", fontFamily: "inherit", width: "100%", background: "#fafafa", boxSizing: "border-box" }}
+                    />
+                  </div>
+                  <button
+                    onClick={fetchFixtures}
+                    disabled={sportsLoading}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 7,
+                      padding: "9px 20px", borderRadius: 9,
+                      background: sportsLoading ? "#94a3b8" : "#16a34a",
+                      color: "#fff", border: "none", cursor: sportsLoading ? "not-allowed" : "pointer",
+                      fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                      boxShadow: sportsLoading ? "none" : "0 3px 10px rgba(22,163,74,0.3)",
+                    }}
+                  >
+                    {sportsLoading
+                      ? <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} />
+                      : <Trophy size={14} />}
+                    {sportsLoading ? "Cargando..." : "Buscar partidos"}
+                  </button>
+                </div>
+                <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 12, margin: "12px 0 0" }}>
+                  ⚙️ Requiere el secret <code style={{ background: "#f1f5f9", padding: "1px 6px", borderRadius: 4, fontSize: 11 }}>RAPIDAPI_KEY</code> en Supabase → Settings → Edge Functions → Secrets.
+                </p>
+              </div>
+
+              {/* Lista de partidos */}
+              {fixtures.length > 0 && (() => {
+                const filtered = sportsLeagueFilter.trim()
+                  ? fixtures.filter((f) => f.league_name?.toLowerCase().includes(sportsLeagueFilter.toLowerCase()) || f.league_country?.toLowerCase().includes(sportsLeagueFilter.toLowerCase()))
+                  : fixtures;
+
+                const byLeague: Record<string, any[]> = {};
+                filtered.forEach((f) => {
+                  const k = f.league_name || "Otras ligas";
+                  if (!byLeague[k]) byLeague[k] = [];
+                  byLeague[k].push(f);
+                });
+
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                    <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
+                      {filtered.length} partido{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""} para {sportsDate}
+                    </p>
+                    {Object.entries(byLeague).map(([league, games]) => (
+                      <div key={league} style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                        <div style={{ padding: "11px 20px", background: "#f8fafc", borderBottom: "1px solid #e8ecf0", display: "flex", alignItems: "center", gap: 8 }}>
+                          {games[0]?.league_logo && (
+                            <img src={games[0].league_logo} alt={league} style={{ width: 18, height: 18, objectFit: "contain" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          )}
+                          <h4 style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", margin: 0 }}>
+                            {league}
+                            {games[0]?.league_country && <span style={{ fontWeight: 500, color: "#94a3b8", marginLeft: 6 }}>· {games[0].league_country}</span>}
+                          </h4>
+                          <span style={{ marginLeft: "auto", fontSize: 11, color: "#94a3b8" }}>{games.length} partido{games.length !== 1 ? "s" : ""}</span>
+                        </div>
+                        {games.map((fixture, idx) => {
+                          const isLoading = actionLoading === "sport-" + fixture.id;
+                          return (
+                            <div
+                              key={fixture.id}
+                              style={{
+                                display: "flex", alignItems: "center", gap: 12,
+                                padding: "12px 20px",
+                                borderBottom: idx < games.length - 1 ? "1px solid #f8fafc" : "none",
+                              }}
+                            >
+                              {/* Equipos */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                {fixture.home_logo && (
+                                  <img src={fixture.home_logo} alt="" style={{ width: 22, height: 22, objectFit: "contain", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                )}
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fixture.home_team}</span>
+                                <span style={{ fontSize: 11, color: "#cbd5e1", fontWeight: 700, flexShrink: 0 }}>vs</span>
+                                {fixture.away_logo && (
+                                  <img src={fixture.away_logo} alt="" style={{ width: 22, height: 22, objectFit: "contain", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                )}
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fixture.away_team}</span>
+                              </div>
+
+                              {/* Hora + acción */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                                {fixture.time && (
+                                  <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600, minWidth: 44, textAlign: "right" }}>
+                                    {fixture.time}
+                                  </span>
+                                )}
+                                {fixture.result ? (
+                                  <span style={{
+                                    padding: "4px 10px", borderRadius: 6,
+                                    background: "#f0fdf4", color: "#16a34a",
+                                    fontSize: 12, fontWeight: 800, letterSpacing: "-0.01em",
+                                  }}>
+                                    {fixture.result}
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => createMarketFromFixture(fixture)}
+                                    disabled={!!actionLoading}
+                                    style={{
+                                      display: "flex", alignItems: "center", gap: 5,
+                                      padding: "7px 14px", borderRadius: 8,
+                                      background: isLoading ? "#f1f5f9" : "#eff6ff",
+                                      color: isLoading ? "#94a3b8" : "#2563eb",
+                                      border: `1.5px solid ${isLoading ? "#e2e8f0" : "#bfdbfe"}`,
+                                      fontSize: 12, fontWeight: 700,
+                                      cursor: actionLoading ? "not-allowed" : "pointer",
+                                      fontFamily: "inherit", transition: "all 0.15s",
+                                    }}
+                                  >
+                                    {isLoading
+                                      ? <RefreshCw size={11} style={{ animation: "spin 1s linear infinite" }} />
+                                      : <Plus size={11} />}
+                                    {isLoading ? "..." : "Crear mercado"}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Estado vacío */}
+              {fixtures.length === 0 && !sportsLoading && (
+                <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8ecf0", padding: "52px 28px", textAlign: "center" }}>
+                  <p style={{ fontSize: 36, marginBottom: 10, margin: "0 0 10px" }}>⚽</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: "0 0 6px" }}>Sin partidos cargados</p>
+                  <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Selecciona una fecha y haz clic en "Buscar partidos".</p>
+                </div>
+              )}
+
+            </div>
+          )}
+
         </div>
       </main>
+
+      {/* ══ Bottom tab bar — solo mobile ══ */}
+      {isMobile && (
+        <nav style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, height: 64,
+          background: "#ffffff", borderTop: "1px solid #e8ecf0",
+          display: "flex", alignItems: "stretch",
+          zIndex: 30, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
+        }}>
+          {([
+            { key: "dashboard",   icon: LayoutDashboard, label: "Inicio"    },
+            { key: "markets",     icon: TrendingUp,      label: "Mercados"  },
+            { key: "create",      icon: Plus,            label: "Crear"     },
+            { key: "users",       icon: Users,           label: "Usuarios"  },
+            { key: "withdrawals", icon: ArrowDownCircle, label: "Retiros"   },
+          ] as const).map(({ key, icon: Icon, label }) => {
+            const active = tab === key;
+            const badge = key === "withdrawals" && pendingWdCount > 0 ? pendingWdCount : null;
+            return (
+              <button
+                key={key}
+                onClick={() => setTab(key as Tab)}
+                style={{
+                  flex: 1, border: "none", background: "transparent", cursor: "pointer",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  gap: 3, padding: "8px 2px", position: "relative",
+                  color: active ? "#2563eb" : "#94a3b8",
+                  transition: "color 0.15s",
+                }}
+              >
+                {badge !== null && (
+                  <span style={{
+                    position: "absolute", top: 7, left: "calc(50% + 6px)",
+                    fontSize: 9, fontWeight: 800, minWidth: 16, height: 16,
+                    background: "#ef4444", color: "#fff", borderRadius: 8,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: "0 4px",
+                  }}>{badge}</span>
+                )}
+                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "-0.01em" }}>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

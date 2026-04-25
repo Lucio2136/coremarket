@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase, Profile } from "@/lib/supabase";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -88,6 +89,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // ── Inactividad: cierre de sesión automático (ISO 27001 A.9.2.4) ─────────
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resetHandlerRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    const clearTimers = () => {
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+      if (warningTimer.current)    clearTimeout(warningTimer.current);
+    };
+
+    if (!user) { clearTimers(); return; }
+
+    const WARN_MS  = 28 * 60 * 1000; // aviso a los 28 min
+    const CLOSE_MS = 30 * 60 * 1000; // cierre a los 30 min
+
+    const resetTimers = () => {
+      clearTimers();
+      toast.dismiss("inactivity-warning");
+
+      warningTimer.current = setTimeout(() => {
+        toast.warning("Tu sesión cerrará en 2 minutos por inactividad.", {
+          id: "inactivity-warning",
+          duration: 120_000,
+        });
+      }, WARN_MS);
+
+      inactivityTimer.current = setTimeout(async () => {
+        toast.dismiss("inactivity-warning");
+        setUser(null);
+        setProfile(null);
+        setBalance(0);
+        await supabase.auth.signOut();
+        toast.error("Sesión cerrada por inactividad.");
+      }, CLOSE_MS);
+    };
+
+    resetHandlerRef.current = resetTimers;
+    resetTimers();
+
+    const handler = () => resetHandlerRef.current();
+    const EVENTS  = ["mousemove", "keydown", "click", "scroll", "touchstart"] as const;
+    EVENTS.forEach((e) => window.addEventListener(e, handler, { passive: true }));
+
+    return () => {
+      clearTimers();
+      EVENTS.forEach((e) => window.removeEventListener(e, handler));
+    };
+  }, [user]);
 
   // ── Realtime balance ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -211,3 +262,4 @@ export const useAuth = () => {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
+

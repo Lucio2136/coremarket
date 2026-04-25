@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 // Single shared interval — all subscribers reuse the same tick
-let listeners = new Set<() => void>();
+const listeners = new Set<() => void>();
 let intervalId: ReturnType<typeof setInterval> | null = null;
 
 function subscribe(fn: () => void) {

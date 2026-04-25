@@ -26,7 +26,11 @@
       "Bash(git commit -m 'feat: add Google Trends MX and Bolsa Mexicana \\(IPC\\) live widgets *)",
       "Bash(git commit -m 'fix: TrendsWidget uses allorigins.win proxy, no edge function needed *)",
       "Bash(git commit -m 'fix: TrendsWidget tries 3 CORS proxies with fallback chain *)",
-      "Bash(git commit -m 'remove: hide FeaturedSection hero from homepage *)"
+      "Bash(git commit -m 'remove: hide FeaturedSection hero from homepage *)",
+      "Bash(git commit *)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "Bash(supabase migration *)",
+      "Bash(vercel --prod)"
     ]
   }
 }

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/context/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ProtectedAdminRoute } from "@/components/ProtectedAdminRoute";
 
 const HomePage        = lazy(() => import("@/pages/HomePage"));
 const MarketPage      = lazy(() => import("@/pages/MarketPage"));
@@ -67,7 +68,14 @@ const App = () => (
                 <Route path="/noticias" element={<NoticiasPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
-              <Route path="/admin" element={<AdminPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminPage />
+                  </ProtectedAdminRoute>
+                }
+              />
             </Routes>
           </Suspense>
         </BrowserRouter>

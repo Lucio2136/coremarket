@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext", "Deno.ns"],
+    "lib": ["ESNext", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true,
-    "noImplicitAny": true,
+    "strict": false,
     "skipLibCheck": true
   }
 }

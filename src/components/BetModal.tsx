@@ -281,10 +281,25 @@ export function BetModal({ market, side, onClose, onAuthRequired }: BetModalProp
               <div style={{ position: "relative" }}>
                 <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", fontWeight: 600, fontSize: 14 }}>$</span>
                 <input
-                  type="number"
-                  min="10"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onKeyDown={(e) => {
+                    const allowed = ["Backspace","Delete","ArrowLeft","ArrowRight","Tab","Enter","Home","End"];
+                    if (!allowed.includes(e.key) && !/^\d$/.test(e.key) && !(e.key === "." && !amount.includes("."))) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                    setAmount(val);
+                  }}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const text = e.clipboardData.getData("text").replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+                    setAmount(text);
+                  }}
                   placeholder="0"
                   autoFocus
                   style={{

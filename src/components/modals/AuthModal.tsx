@@ -1,12 +1,9 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Mail, ArrowLeft, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle, Eye, EyeOff, X } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -19,15 +16,36 @@ function GoogleIcon() {
   );
 }
 
-function FacebookIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="#1877F2" aria-hidden="true">
-      <path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
-    </svg>
-  );
+type View = "login" | "signup" | "forgot" | "verify";
+
+const PW_RULES = [
+  { id: "length",  label: "Mínimo 8 caracteres",     test: (p: string) => p.length >= 8 },
+  { id: "upper",   label: "Una letra mayúscula",      test: (p: string) => /[A-Z]/.test(p) },
+  { id: "lower",   label: "Una letra minúscula",      test: (p: string) => /[a-z]/.test(p) },
+  { id: "number",  label: "Un número",                test: (p: string) => /[0-9]/.test(p) },
+  { id: "symbol",  label: "Un símbolo (!@#$%...)",    test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
+];
+
+function isStrongPassword(p: string) {
+  return PW_RULES.every((r) => r.test(p));
 }
 
-type View = "login" | "signup" | "forgot" | "verify";
+function PasswordStrengthHints({ password }: { password: string }) {
+  if (!password) return null;
+  return (
+    <ul className="mt-2 flex flex-col gap-1">
+      {PW_RULES.map((rule) => {
+        const ok = rule.test(password);
+        return (
+          <li key={rule.id} className={`flex items-center gap-1.5 text-[11px] font-medium transition-colors ${ok ? "text-emerald-600" : "text-rose-500"}`}>
+            <span className="shrink-0">{ok ? "✓" : "✗"}</span>
+            {rule.label}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 interface AuthModalProps {
   open: boolean;
@@ -41,44 +59,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
   const [username, setUsername]     = useState("");
   const [referralCode, setReferral] = useState("");
   const [loading, setLoading]       = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<"google" | "facebook" | null>(null);
+  const [oauthLoading, setOauthLoading] = useState<"google" | null>(null);
   const [showLoginPw, setShowLoginPw]   = useState(false);
   const [showSignupPw, setShowSignupPw] = useState(false);
-  const { signIn, signUp, signInWithGoogle, signInWithFacebook, resetPasswordEmail } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPasswordEmail } = useAuth();
 
   const reset = () => { setEmail(""); setPassword(""); setUsername(""); setReferral(""); };
 
-  const handleClose = (v: boolean) => {
-    onOpenChange(v);
-    if (!v) { reset(); setView("login"); }
+  const handleClose = () => {
+    onOpenChange(false);
+    reset();
+    setView("login");
   };
 
-  // ── Login ────────────────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await signIn(email, password);
-      handleClose(false);
+      handleClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error de autenticación");
     } finally { setLoading(false); }
   };
 
-  // ── Registro ─────────────────────────────────────────────────────────────
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validar username: solo letras, números y guión bajo, 3-20 chars
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
       toast.error("Usuario: 3-20 caracteres, solo letras, números y _");
       return;
     }
-    if (password.length < 8) {
-      toast.error("La contraseña debe tener al menos 8 caracteres");
-      return;
-    }
-    if (!/[0-9]/.test(password) && !/[^a-zA-Z0-9]/.test(password)) {
-      toast.error("La contraseña debe incluir al menos un número o símbolo");
+    if (!isStrongPassword(password)) {
+      toast.error("La contraseña no cumple los requisitos de seguridad");
       return;
     }
     setLoading(true);
@@ -90,20 +102,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     } finally { setLoading(false); }
   };
 
-  // ── OAuth ────────────────────────────────────────────────────────────────
   const handleGoogle = async () => {
     setOauthLoading("google");
     try { await signInWithGoogle(); }
     catch { toast.error("No se pudo conectar con Google"); setOauthLoading(null); }
   };
 
-  const handleFacebook = async () => {
-    setOauthLoading("facebook");
-    try { await signInWithFacebook(); }
-    catch { toast.error("No se pudo conectar con Facebook"); setOauthLoading(null); }
-  };
-
-  // ── Recuperar contraseña ─────────────────────────────────────────────────
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -117,271 +121,241 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     } finally { setLoading(false); }
   };
 
+  const inputCls = "w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-[15px] text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:border-blue-400 focus:bg-white dark:focus:bg-gray-750 transition-colors placeholder:text-gray-300 dark:placeholder:text-gray-600";
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="p-0 border-0 bg-transparent shadow-none sm:max-w-[400px]">
-        <Card className="w-full border border-gray-200 shadow-lg">
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+          onClick={handleClose}
+        >
+          <motion.div
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full sm:max-w-[400px] bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col"
+            style={{ maxHeight: "92vh", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          >
+            {/* Drag handle móvil */}
+            <div className="flex justify-center pt-3 pb-0 sm:hidden shrink-0">
+              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+            </div>
 
-          {/* ── Vista: Verificación enviada ── */}
-          {view === "verify" && (
-            <>
-              <CardHeader className="pb-2">
-                <div className="flex flex-col items-center text-center gap-3 pt-2">
-                  <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
-                    <CheckCircle size={24} className="text-emerald-500" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-900">Verifica tu correo</CardTitle>
-                  <CardDescription className="text-[13px] leading-relaxed">
-                    Enviamos un enlace de verificación a{" "}
-                    <span className="font-semibold text-gray-700">{email}</span>.
-                    Haz clic en el enlace para activar tu cuenta.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="bg-amber-50 border border-amber-200/70 rounded-xl p-3 text-[12px] text-amber-700 leading-relaxed">
-                  <strong>¿No lo ves?</strong> Revisa tu carpeta de spam o correo no deseado.
-                </div>
-              </CardContent>
-              <CardFooter className="flex-col gap-2 pt-2">
-                <Button
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold"
-                  onClick={() => handleClose(false)}
-                >
-                  Entendido
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => { setView("login"); reset(); }}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  Volver al inicio de sesión
-                </button>
-              </CardFooter>
-            </>
-          )}
+            {/* Contenido scrollable */}
+            <div className="overflow-y-auto flex-1">
+              <div className="px-5 pt-4 pb-6 flex flex-col gap-4">
 
-          {/* ── Vista: Recuperar contraseña ── */}
-          {view === "forgot" && (
-            <>
-              <CardHeader>
-                <button
-                  type="button"
-                  onClick={() => { setView("login"); setEmail(""); }}
-                  className="flex items-center gap-1.5 text-[12px] text-gray-400 hover:text-gray-700 transition-colors mb-2 -ml-0.5"
-                >
-                  <ArrowLeft size={13} /> Volver
-                </button>
-                <CardTitle className="text-xl font-bold text-gray-900">Recuperar contraseña</CardTitle>
-                <CardDescription>Te enviaremos un enlace para crear una nueva contraseña.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form id="forgot-form" onSubmit={handleForgot} className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="forgot-email">Correo electrónico</Label>
-                    <div className="relative">
-                      <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                      <Input
-                        id="forgot-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu@correo.com"
-                        required
-                        className="bg-gray-50 border-gray-200 pl-9"
-                      />
-                    </div>
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex-col gap-2">
-                <Button
-                  type="submit"
-                  form="forgot-form"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                  disabled={loading}
-                >
-                  {loading ? "Enviando..." : "Enviar enlace"}
-                </Button>
-              </CardFooter>
-            </>
-          )}
-
-          {/* ── Vista: Login ── */}
-          {view === "login" && (
-            <>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-bold text-gray-900">Inicia sesión</CardTitle>
-                    <CardDescription className="mt-1">Bienvenido de regreso</CardDescription>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setView("signup"); reset(); }}
-                    className="text-sm text-blue-600 font-semibold hover:underline whitespace-nowrap mt-0.5"
-                  >
-                    Regístrate
-                  </button>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                {/* OAuth buttons */}
-                <button
-                  type="button"
-                  onClick={handleGoogle}
-                  disabled={!!oauthLoading}
-                  className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-[13px] font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  {oauthLoading === "google" ? <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" /> : <GoogleIcon />}
-                  Continuar con Google
-                </button>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-gray-100" />
-                  <span className="text-[11px] text-gray-400 font-medium">o con correo</span>
-                  <div className="flex-1 h-px bg-gray-100" />
-                </div>
-                <form id="login-form" onSubmit={handleLogin} className="flex flex-col gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="login-email">Correo electrónico</Label>
-                    <Input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" required className="bg-gray-50 border-gray-200" />
-                  </div>
-                  <div className="grid gap-2">
+                {/* ── Verificación enviada ── */}
+                {view === "verify" && (
+                  <>
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Contraseña</Label>
-                      <button
-                        type="button"
-                        onClick={() => setView("forgot")}
-                        className="text-[12px] text-blue-600 hover:underline font-medium"
-                      >
-                        ¿Olvidaste tu contraseña?
-                      </button>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Verifica tu correo</h2>
+                      <button onClick={handleClose} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><X size={18} /></button>
                     </div>
-                    <div className="relative">
-                      <Input id="login-password" type={showLoginPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="bg-gray-50 border-gray-200 pr-10" />
-                      <button type="button" onClick={() => setShowLoginPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        {showLoginPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
+                    <div className="flex flex-col items-center text-center gap-3 py-4">
+                      <div className="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <CheckCircle size={28} className="text-emerald-500" />
+                      </div>
+                      <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                        Enviamos un enlace de verificación a{" "}
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{email}</span>.
+                        Haz clic en el enlace para activar tu cuenta.
+                      </p>
                     </div>
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex-col gap-2">
-                <Button type="submit" form="login-form" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold" disabled={loading}>
-                  {loading ? "Cargando..." : "Entrar"}
-                </Button>
-                <p className="text-center text-xs text-gray-500">
-                  ¿No tienes cuenta?{" "}
-                  <button type="button" onClick={() => { setView("signup"); reset(); }} className="text-blue-600 font-semibold hover:underline">
-                    Regístrate gratis
-                  </button>
-                </p>
-              </CardFooter>
-            </>
-          )}
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 text-[12px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                      <strong>¿No lo ves?</strong> Revisa tu carpeta de spam.
+                    </div>
+                    <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold" onClick={handleClose}>
+                      Entendido
+                    </Button>
+                    <button type="button" onClick={() => { setView("login"); reset(); }} className="text-xs text-center text-gray-400 hover:text-gray-600 transition-colors">
+                      Volver al inicio de sesión
+                    </button>
+                  </>
+                )}
 
-          {/* ── Vista: Registro ── */}
-          {view === "signup" && (
-            <>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-bold text-gray-900">Crear cuenta</CardTitle>
-                    <CardDescription className="mt-1">Regístrate para empezar a predecir</CardDescription>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setView("login"); reset(); }}
-                    className="text-sm text-blue-600 font-semibold hover:underline whitespace-nowrap mt-0.5"
-                  >
-                    Iniciar sesión
-                  </button>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                {/* OAuth buttons */}
-                <button
-                  type="button"
-                  onClick={handleGoogle}
-                  disabled={!!oauthLoading}
-                  className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-[13px] font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  {oauthLoading === "google" ? <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" /> : <GoogleIcon />}
-                  Continuar con Google
-                </button>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-gray-100" />
-                  <span className="text-[11px] text-gray-400 font-medium">o con correo</span>
-                  <div className="flex-1 h-px bg-gray-100" />
-                </div>
-                <form id="signup-form" onSubmit={handleSignUp} className="flex flex-col gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-username">Nombre de usuario</Label>
-                    <Input
-                      id="signup-username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20))}
-                      placeholder="tu_usuario"
-                      required
-                      minLength={3}
-                      maxLength={20}
-                      className="bg-gray-50 border-gray-200"
-                    />
-                    {username.length > 0 && username.length < 3 && (
-                      <p className="text-[11px] text-rose-500">Mínimo 3 caracteres</p>
-                    )}
-                    {username.length >= 3 && (
-                      <p className="text-[11px] text-emerald-600">✓ Solo letras, números y _</p>
-                    )}
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-referral">
-                      Código de referido{" "}
-                      <span className="text-gray-400 font-normal">(opcional)</span>
-                    </Label>
-                    <Input
-                      id="signup-referral"
-                      value={referralCode}
-                      onChange={(e) => setReferral(e.target.value.toUpperCase())}
-                      placeholder="Ej. AB12CD34"
-                      maxLength={8}
-                      className="bg-gray-50 border-gray-200 font-mono tracking-widest"
-                    />
-                    {referralCode.trim().length > 0 && (
-                      <p className="text-[11px] text-emerald-600 font-medium">+$50 MXN de bono al registrarte</p>
-                    )}
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-email">Correo electrónico</Label>
-                    <Input id="signup-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" required className="bg-gray-50 border-gray-200" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="signup-password">Contraseña</Label>
-                    <div className="relative">
-                      <Input id="signup-password" type={showSignupPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required minLength={8} className="bg-gray-50 border-gray-200 pr-10" />
-                      <button type="button" onClick={() => setShowSignupPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        {showSignupPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                {/* ── Recuperar contraseña ── */}
+                {view === "forgot" && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <button type="button" onClick={() => { setView("login"); setEmail(""); }} className="flex items-center gap-1.5 text-[13px] text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                        <ArrowLeft size={14} /> Volver
                       </button>
+                      <button onClick={handleClose} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><X size={18} /></button>
                     </div>
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex-col gap-2">
-                <Button type="submit" form="signup-form" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold" disabled={loading}>
-                  {loading ? "Creando cuenta..." : "Crear cuenta"}
-                </Button>
-                <p className="text-center text-xs text-gray-500">
-                  ¿Ya tienes cuenta?{" "}
-                  <button type="button" onClick={() => { setView("login"); reset(); }} className="text-blue-600 font-semibold hover:underline">
-                    Inicia sesión
-                  </button>
-                </p>
-              </CardFooter>
-            </>
-          )}
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Recuperar contraseña</h2>
+                      <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1">Te enviaremos un enlace para crear una nueva contraseña.</p>
+                    </div>
+                    <form onSubmit={handleForgot} className="flex flex-col gap-4">
+                      <div>
+                        <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">Correo electrónico</label>
+                        <div className="relative">
+                          <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" required className={`${inputCls} pl-9`} />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold" disabled={loading}>
+                        {loading ? "Enviando..." : "Enviar enlace"}
+                      </Button>
+                    </form>
+                  </>
+                )}
 
-        </Card>
-      </DialogContent>
-    </Dialog>
+                {/* ── Login ── */}
+                {view === "login" && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Inicia sesión</h2>
+                        <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Bienvenido de regreso</p>
+                      </div>
+                      <button onClick={handleClose} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><X size={18} /></button>
+                    </div>
+
+                    <button type="button" onClick={handleGoogle} disabled={!!oauthLoading}
+                      className="w-full flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl py-3 text-[13px] font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors disabled:opacity-50">
+                      {oauthLoading === "google" ? <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" /> : <GoogleIcon />}
+                      Continuar con Google
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                      <span className="text-[11px] text-gray-400 font-medium">o con correo</span>
+                      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                    </div>
+
+                    <form onSubmit={handleLogin} className="flex flex-col gap-3">
+                      <div>
+                        <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">Correo electrónico</label>
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" required className={inputCls} />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400">Contraseña</label>
+                          <button type="button" onClick={() => setView("forgot")} className="text-[12px] text-blue-600 hover:underline font-medium">
+                            ¿Olvidaste tu contraseña?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <input type={showLoginPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className={`${inputCls} pr-11`} />
+                          <button type="button" onClick={() => setShowLoginPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
+                            {showLoginPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mt-1" disabled={loading}>
+                        {loading ? "Cargando..." : "Entrar"}
+                      </Button>
+                    </form>
+
+                    <p className="text-center text-[13px] text-gray-500 dark:text-gray-400">
+                      ¿No tienes cuenta?{" "}
+                      <button type="button" onClick={() => { setView("signup"); reset(); }} className="text-blue-600 font-semibold hover:underline">
+                        Regístrate gratis
+                      </button>
+                    </p>
+                  </>
+                )}
+
+                {/* ── Registro ── */}
+                {view === "signup" && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Crear cuenta</h2>
+                        <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Regístrate para empezar a predecir</p>
+                      </div>
+                      <button onClick={handleClose} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><X size={18} /></button>
+                    </div>
+
+                    <button type="button" onClick={handleGoogle} disabled={!!oauthLoading}
+                      className="w-full flex items-center justify-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl py-3 text-[13px] font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors disabled:opacity-50">
+                      {oauthLoading === "google" ? <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" /> : <GoogleIcon />}
+                      Continuar con Google
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                      <span className="text-[11px] text-gray-400 font-medium">o con correo</span>
+                      <div className="flex-1 h-px bg-gray-100 dark:bg-gray-800" />
+                    </div>
+
+                    <form onSubmit={handleSignUp} className="flex flex-col gap-3">
+                      <div>
+                        <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">Nombre de usuario</label>
+                        <input
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 20))}
+                          placeholder="tu_usuario"
+                          required
+                          minLength={3}
+                          maxLength={20}
+                          className={inputCls}
+                        />
+                        {username.length > 0 && username.length < 3 && (
+                          <p className="text-[11px] text-rose-500 mt-1">Mínimo 3 caracteres</p>
+                        )}
+                        {username.length >= 3 && (
+                          <p className="text-[11px] text-emerald-600 mt-1">✓ Solo letras, números y _</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">
+                          Código de referido <span className="text-gray-400 font-normal">(opcional)</span>
+                        </label>
+                        <input
+                          value={referralCode}
+                          onChange={(e) => setReferral(e.target.value.toUpperCase())}
+                          placeholder="Ej. AB12CD34"
+                          maxLength={8}
+                          className={`${inputCls} font-mono tracking-widest`}
+                        />
+                        {referralCode.trim().length > 0 && (
+                          <p className="text-[11px] text-emerald-600 font-medium mt-1">+$50 MXN de bono al registrarte</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">Correo electrónico</label>
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" required className={inputCls} />
+                      </div>
+                      <div>
+                        <label className="text-[12px] font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">Contraseña</label>
+                        <div className="relative">
+                          <input type={showSignupPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres" required minLength={8} className={`${inputCls} pr-11`} />
+                          <button type="button" onClick={() => setShowSignupPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
+                            {showSignupPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                        </div>
+                        <PasswordStrengthHints password={password} />
+                      </div>
+                      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mt-1" disabled={loading}>
+                        {loading ? "Creando cuenta..." : "Crear cuenta"}
+                      </Button>
+                    </form>
+
+                    <p className="text-center text-[13px] text-gray-500 dark:text-gray-400">
+                      ¿Ya tienes cuenta?{" "}
+                      <button type="button" onClick={() => { setView("login"); reset(); }} className="text-blue-600 font-semibold hover:underline">
+                        Inicia sesión
+                      </button>
+                    </p>
+                  </>
+                )}
+
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

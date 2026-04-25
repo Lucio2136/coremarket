@@ -10,7 +10,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.conekta.io https://api.mercadopago.com https://*.wikipedia.org https://upload.wikimedia.org; img-src 'self' data: blob: https:; frame-src https://js.stripe.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.conekta.io https://api.mercadopago.com https://*.wikipedia.org https://upload.wikimedia.org https://api.kraken.com https://open.er-api.com https://api.frankfurter.app; img-src 'self' data: blob: https:; frame-src https://js.stripe.com; font-src 'self' https://fonts.gstatic.com; object-src 'none'; base-uri 'self';"
         },
         {
           "key": "X-Content-Type-Options",

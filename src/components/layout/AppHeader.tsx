@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
-  LogIn, LogOut, User, BarChart2, Gift, Bell,
+  LogIn, LogOut, User, BarChart2, Gift, Bell, Plus,
   TrendingUp, Flame, Sparkles, Search, ChevronDown,
   CheckCircle, XCircle, ArrowUpCircle, Trophy, Clock, HelpCircle, Bookmark, LineChart,
 } from "lucide-react";
@@ -43,8 +43,9 @@ export function AppHeader() {
   const [searchOpen, setSearchOpen]     = useState(false);
   const [notifOpen, setNotifOpen]       = useState(false);
   const [avatarOpen, setAvatarOpen]     = useState(false);
-  const notifRef  = useRef<HTMLDivElement>(null);
-  const avatarRef = useRef<HTMLDivElement>(null);
+  const notifRef        = useRef<HTMLDivElement>(null);
+  const mobileAvatarRef = useRef<HTMLDivElement>(null);
+  const desktopAvatarRef = useRef<HTMLDivElement>(null);
   const navigate   = useNavigate();
   const [searchParams] = useSearchParams();
   const activeCat  = searchParams.get("cat") ?? "";
@@ -53,8 +54,12 @@ export function AppHeader() {
   useEffect(() => {
     if (!notifOpen && !avatarOpen) return;
     const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) setAvatarOpen(false);
+      const t = e.target as Node;
+      if (notifRef.current && !notifRef.current.contains(t)) setNotifOpen(false);
+      const inAvatar =
+        (mobileAvatarRef.current  && mobileAvatarRef.current.contains(t)) ||
+        (desktopAvatarRef.current && desktopAvatarRef.current.contains(t));
+      if (!inAvatar) setAvatarOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -112,10 +117,18 @@ export function AppHeader() {
           <div className="flex items-center gap-0.5">
             {user && !loading ? (
               <>
-                {/* Saldo */}
-                <span className="text-[15px] font-bold text-slate-900 dark:text-gray-100 tabular-nums mr-1" style={{ letterSpacing: "-0.01em" }}>
-                  ${fmtMXN(balance)}
-                </span>
+                {/* Saldo — tap para depositar */}
+                <button
+                  onClick={() => setDepositOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all mr-0.5"
+                >
+                  <span className="text-[15px] font-bold text-slate-900 dark:text-gray-100" style={{ letterSpacing: "-0.01em" }}>
+                    ${fmtMXN(balance)}
+                  </span>
+                  <span className="w-[18px] h-[18px] rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                    <Plus size={11} className="text-white" strokeWidth={2.5} />
+                  </span>
+                </button>
 
                 {/* Notificaciones */}
                 <button
@@ -137,7 +150,7 @@ export function AppHeader() {
                 </button>
 
                 {/* Avatar */}
-                <div ref={avatarRef} className="relative ml-1">
+                <div ref={mobileAvatarRef} className="relative ml-1">
                   <button
                     onClick={() => setAvatarOpen((v) => !v)}
                     className="p-0.5 rounded-full hover:ring-2 hover:ring-gray-200 dark:hover:ring-gray-700 transition-all"
@@ -284,7 +297,7 @@ export function AppHeader() {
                   </button>
                 </div>
 
-                <div ref={avatarRef} className="relative">
+                <div ref={desktopAvatarRef} className="relative">
                   <button
                     onClick={() => setAvatarOpen((v) => !v)}
                     className="flex items-center gap-1 p-0.5 rounded-full hover:ring-2 hover:ring-gray-200 dark:hover:ring-gray-700 transition-all"

@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 const SECTIONS = [
   {
     title: "1. Responsable del tratamiento",
-    body: `Lucebase (en adelante "nosotros" o "la Plataforma") es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y su Reglamento, vigentes en los Estados Unidos Mexicanos. Para cualquier asunto relacionado con el tratamiento de tus datos puedes contactarnos en: contacto@lucebase.mx.`,
+    body: `Lucebase (en adelante "nosotros" o "la Plataforma") es responsable del tratamiento de tus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y su Reglamento, vigentes en los Estados Unidos Mexicanos.\n\nDatos del Responsable:\nNombre o razón social: Lucebase\nDomicilio: Culiacán, Sinaloa, México\nCorreo electrónico: contacto@lucebase.mx`,
   },
   {
     title: "2. Datos personales que recopilamos",
@@ -38,8 +38,8 @@ const SECTIONS = [
     body: `Conservamos tus datos personales mientras tu cuenta esté activa o sea necesario para prestarte el servicio. Si solicitas la cancelación de tu cuenta, eliminamos tus datos identificativos en un plazo máximo de 30 días naturales. Los registros de transacciones financieras se conservan durante 5 años contados a partir de cada operación, conforme al artículo 30 del Código Fiscal de la Federación. Los datos anonimizados o agregados pueden conservarse indefinidamente para fines estadísticos.`,
   },
   {
-    title: "10. Derechos ARCO",
-    body: `Conforme a la LFPDPPP, tienes derecho a: (A) Acceso — conocer qué datos personales tenemos sobre ti y cómo los tratamos; (R) Rectificación — solicitar la corrección de datos inexactos o incompletos; (C) Cancelación — solicitar la eliminación de tus datos cuando ya no sean necesarios; (O) Oposición — oponerte al tratamiento de tus datos para finalidades secundarias. Para ejercer cualquiera de estos derechos envía un correo a contacto@lucebase.mx indicando: tu nombre de usuario, el derecho que deseas ejercer y los datos a los que se refiere. Responderemos en un plazo máximo de 20 días hábiles.`,
+    title: "10. Derechos ARCO y limitación de uso",
+    body: `Conforme a la LFPDPPP tienes derecho a:\n\n(A) Acceso — conocer qué datos personales tenemos sobre ti y cómo los tratamos.\n(R) Rectificación — solicitar la corrección de datos inexactos o incompletos.\n(C) Cancelación — solicitar la eliminación de tus datos cuando ya no sean necesarios para la finalidad que motivó su recabación.\n(O) Oposición — oponerte al tratamiento de tus datos para finalidades secundarias o cuando exista un motivo legítimo.\n(L) Limitación de uso o divulgación — solicitar que suspendamos temporalmente el tratamiento de tus datos o que no los compartamos con terceros mientras resolvemos una disputa.\n\nPara ejercer cualquiera de estos derechos envía un correo a privacidad@lucebase.mx indicando: tu nombre de usuario, el derecho que deseas ejercer y los datos a los que se refiere tu solicitud. Responderemos en un plazo máximo de 20 días hábiles.\n\nSi consideras que tu solicitud no fue atendida correctamente puedes acudir al Instituto Nacional de Transparencia, Acceso a la Información y Protección de Datos Personales (INAI): www.inai.org.mx.`,
   },
   {
     title: "11. Seguridad de la información",
@@ -58,8 +58,8 @@ const SECTIONS = [
     body: `Podemos actualizar esta Política de Privacidad periódicamente para reflejar cambios en nuestras prácticas, en la legislación aplicable o en los servicios ofrecidos. Te notificaremos por correo electrónico y mediante un aviso destacado en la Plataforma con al menos 10 días de anticipación antes de que entren en vigor cambios materiales. El uso continuado de la Plataforma tras la entrada en vigor de los cambios constituye tu aceptación.`,
   },
   {
-    title: "15. Contacto y Oficial de Privacidad",
-    body: `Para cualquier consulta, solicitud ARCO, reporte de incidente de seguridad o queja relacionada con el tratamiento de tus datos personales, contáctanos en: contacto@lucebase.mx. Nuestro tiempo de respuesta es de máximo 5 días hábiles para consultas generales y 20 días hábiles para solicitudes ARCO.`,
+    title: "15. Oficial de Privacidad (LFPDPPP art. 30)",
+    body: `Conforme al artículo 30 de la LFPDPPP, Lucebase ha designado un Oficial de Privacidad responsable de promover la protección de datos personales al interior de la organización, atender solicitudes de los titulares y supervisar el cumplimiento de las políticas de privacidad.\n\nOficial de Privacidad: Irving Omar Lizárraga Castillo\nCorreo: privacidad@lucebase.mx\nDomicilio: Culiacán, Sinaloa, México\nHorario de atención: Lunes a viernes, 9:00 – 18:00 hrs (hora del Centro de México)\n\nPara solicitudes ARCO, reportes de incidentes de seguridad o cualquier consulta sobre el tratamiento de tus datos personales, escríbenos a privacidad@lucebase.mx. Responderemos en un plazo máximo de 5 días hábiles para consultas generales y 20 días hábiles para solicitudes ARCO formales.`,
   },
 ];
 
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
         {SECTIONS.map((s) => (
           <div key={s.title} className="px-6 py-5">
             <h2 className="text-[13.5px] font-bold text-gray-900 dark:text-gray-100 mb-2">{s.title}</h2>
-            <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed">{s.body}</p>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-relaxed whitespace-pre-line">{s.body}</p>
           </div>
         ))}
       </div>

@@ -17,12 +17,15 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- ── Políticas de Storage ─────────────────────────────────────────────────────
--- Lectura pública
+DROP POLICY IF EXISTS "avatars_public_read"  ON storage.objects;
+DROP POLICY IF EXISTS "avatars_user_insert"  ON storage.objects;
+DROP POLICY IF EXISTS "avatars_user_update"  ON storage.objects;
+DROP POLICY IF EXISTS "avatars_user_delete"  ON storage.objects;
+
 CREATE POLICY "avatars_public_read"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'avatars');
 
--- El usuario solo puede subir/reemplazar dentro de su propia carpeta (su UUID)
 CREATE POLICY "avatars_user_insert"
   ON storage.objects FOR INSERT
   WITH CHECK (

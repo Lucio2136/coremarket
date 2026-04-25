@@ -18,7 +18,7 @@ BEGIN
   IF NEW.referral_code IS NULL THEN
     LOOP
       v_code  := '';
-      v_bytes := gen_random_bytes(8);
+      v_bytes := decode(replace(gen_random_uuid()::text, '-', ''), 'hex');
       FOR i IN 0..7 LOOP
         v_code := v_code || SUBSTR(v_chars, (get_byte(v_bytes, i) % length(v_chars)) + 1, 1);
       END LOOP;
@@ -47,7 +47,7 @@ BEGIN
   LOOP
     LOOP
       v_code  := '';
-      v_bytes := gen_random_bytes(8);
+      v_bytes := decode(replace(gen_random_uuid()::text, '-', ''), 'hex');
       FOR i IN 0..7 LOOP
         v_code := v_code || SUBSTR(v_chars, (get_byte(v_bytes, i) % length(v_chars)) + 1, 1);
       END LOOP;

@@ -4,6 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const ALLOWED_ORIGINS = [
   "https://lucebase.mx",
   "https://www.lucebase.mx",
+  "https://lucebase.com",
+  "https://www.lucebase.com",
   "https://lucebase.vercel.app",
 ]
 
