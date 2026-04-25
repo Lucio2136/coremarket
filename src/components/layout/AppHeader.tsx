@@ -5,6 +5,7 @@ import {
   TrendingUp, Flame, Sparkles, Search, ChevronDown,
   CheckCircle, XCircle, ArrowUpCircle, Trophy, Clock, HelpCircle, Bookmark, LineChart,
 } from "lucide-react";
+import { FaFire, FaLandmark, FaFutbol, FaFilm, FaChartLine, FaMicrochip, FaMusic, FaBriefcase, FaVoteYea, FaHashtag, FaPalette } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useSavedMarkets } from "@/hooks/use-saved-markets";
 import { useAuth } from "@/context/AuthContext";
@@ -26,8 +27,17 @@ const SPECIAL = [
 ];
 
 const CATEGORIES = [
-  "Morbo", "Política", "Deportes", "Entretenimiento", "Finanzas",
-  "Tech", "Música", "Negocios", "Elecciones", "Redes", "Cultura",
+  { id: "Morbo",           label: "Morbo",           icon: FaFire },
+  { id: "Política",        label: "Política",         icon: FaLandmark },
+  { id: "Deportes",        label: "Deportes",         icon: FaFutbol },
+  { id: "Entretenimiento", label: "Entretenimiento",  icon: FaFilm },
+  { id: "Finanzas",        label: "Finanzas",         icon: FaChartLine },
+  { id: "Tech",            label: "Tech",             icon: FaMicrochip },
+  { id: "Música",          label: "Música",           icon: FaMusic },
+  { id: "Negocios",        label: "Negocios",         icon: FaBriefcase },
+  { id: "Elecciones",      label: "Elecciones",       icon: FaVoteYea },
+  { id: "Redes",           label: "Redes",            icon: FaHashtag },
+  { id: "Cultura",         label: "Cultura",          icon: FaPalette },
 ];
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -376,17 +386,18 @@ export function AppHeader() {
               </button>
             ))}
             <div className="w-px h-4 bg-gray-200 mx-1.5 shrink-0" />
-            {CATEGORIES.map((cat) => (
+            {CATEGORIES.map(({ id, label, icon: CatIcon }) => (
               <button
-                key={cat}
-                onClick={() => selectCat(cat)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeCat === cat
+                key={id}
+                onClick={() => selectCat(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeCat === id
                     ? "text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 font-semibold"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
               >
-                {cat}
+                <CatIcon size={11} />
+                {label}
               </button>
             ))}
             <button className="flex items-center gap-0.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
