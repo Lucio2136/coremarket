@@ -11,8 +11,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS })
 
   try {
-    const authHeader = req.headers.get("Authorization")
-    if (!authHeader?.startsWith("Bearer ")) {
+    // Verificar que hay un usuario autenticado
+    const authHeader = req.headers.get("Authorization") ?? ""
+    if (!authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No autenticado" }), {
         status: 401, headers: { ...CORS, "Content-Type": "application/json" },
       })
@@ -20,40 +21,51 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       { global: { headers: { Authorization: authHeader } } }
     )
-
-    const { data: isAdmin } = await supabase.rpc("check_is_admin")
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Acceso denegado" }), {
-        status: 403, headers: { ...CORS, "Content-Type": "application/json" },
+    const { data: { user }, error: authErr } = await supabase.auth.getUser()
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Sesión inválida" }), {
+        status: 401, headers: { ...CORS, "Content-Type": "application/json" },
       })
     }
 
-    const body = await req.json()
-    const { date, league_id } = body
-    const matchDate = date ?? new Date().toISOString().split("T")[0]
-
     const rapidApiKey = Deno.env.get("RAPIDAPI_KEY")
-    if (!rapidApiKey) throw new Error("RAPIDAPI_KEY no configurado — agrégalo en Supabase Dashboard → Settings → Edge Functions → Secrets")
+    if (!rapidApiKey) {
+      throw new Error("RAPIDAPI_KEY no configurado en Supabase Secrets")
+    }
 
-    const params = new URLSearchParams({ matchDate })
-    if (league_id) params.set("leagueId", String(league_id))
+    const body = await req.json()
+    const matchDate: string = body?.date ?? new Date().toISOString().split("T")[0]
 
-    const res = await fetch(`https://allsportsapi2.p.rapidapi.com/api/football/matches?${params}`, {
+    const url = `https://allsportsapi2.p.rapidapi.com/api/football/matches?matchDate=${matchDate}`
+
+    const res = await fetch(url, {
+      method: "GET",
       headers: {
-        "X-RapidAPI-Key": rapidApiKey,
-        "X-RapidAPI-Host": "allsportsapi2.p.rapidapi.com",
+        "x-rapidapi-key":  rapidApiKey,
+        "x-rapidapi-host": "allsportsapi2.p.rapidapi.com",
+        "Content-Type":    "application/json",
       },
     })
 
+    const raw = await res.text()
+
     if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`AllSportsApi ${res.status}: ${text.slice(0, 200)}`)
+      throw new Error(`AllSportsApi ${res.status}: ${raw.slice(0, 300)}`)
     }
 
-    const data = await res.json()
+    let data: any
+    try {
+      data = JSON.parse(raw)
+    } catch {
+      throw new Error(`Respuesta inválida de AllSportsApi: ${raw.slice(0, 200)}`)
+    }
+
+    if (data.success !== 1) {
+      throw new Error(`AllSportsApi error: ${JSON.stringify(data).slice(0, 200)}`)
+    }
 
     const fixtures = (data.result ?? []).map((m: any) => ({
       id:             m.event_key,
@@ -68,7 +80,9 @@ serve(async (req) => {
       league_country: m.league_country,
       league_logo:    m.league_logo      ?? null,
       status:         m.event_status,
-      result:         m.event_final_result !== "-" ? m.event_final_result : null,
+      result:         (m.event_final_result && m.event_final_result !== "-")
+                        ? m.event_final_result
+                        : null,
     }))
 
     return new Response(JSON.stringify({ fixtures, total: fixtures.length }), {
@@ -76,6 +90,7 @@ serve(async (req) => {
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
+    console.error("[fetch-sports-data]", message)
     return new Response(JSON.stringify({ error: message }), {
       status: 400, headers: { ...CORS, "Content-Type": "application/json" },
     })
