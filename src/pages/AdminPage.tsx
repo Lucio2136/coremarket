@@ -81,6 +81,38 @@ const CATEGORY_CFG: Record<string, { emoji: string; color: string; bg: string; h
   "Elecciones":      { emoji: "🗳️", color: "#b91c1c", bg: "#fff1f2", hint: "Candidatos, encuestas, resultados electorales..." },
 };
 
+// ── Radar de Noticias ────────────────────────────────────────────────────────
+const NEWS_CATEGORIES = [
+  { key: "Política",        emoji: "🏛️", query: "política México gobierno Claudia Sheinbaum 2026",              color: "#7c3aed", bg: "#f5f3ff" },
+  { key: "Finanzas",        emoji: "💰", query: "finanzas economía México inversiones Banxico peso dólar",       color: "#059669", bg: "#ecfdf5" },
+  { key: "Morbo",           emoji: "🌶️", query: "escándalo polémica chisme famosos México morbo",               color: "#dc2626", bg: "#fff1f2" },
+  { key: "Entretenimiento", emoji: "🎭", query: "entretenimiento artistas música celebridades México 2026",      color: "#db2777", bg: "#fdf2f8" },
+  { key: "Diplomacia",      emoji: "🌐", query: "México relaciones internacionales Trump aranceles cancillería", color: "#0369a1", bg: "#f0f9ff" },
+  { key: "Tendencias",      emoji: "📈", query: "viral tendencia México Twitter redes sociales trending",        color: "#d97706", bg: "#fffbeb" },
+  { key: "Negocios",        emoji: "💼", query: "negocios startups empresas México nearshoring emprendimiento",  color: "#0891b2", bg: "#ecfeff" },
+  { key: "Deportes",        emoji: "⚽", query: "deportes Liga MX selección mexicana boxeo fútbol 2026",        color: "#16a34a", bg: "#f0fdf4" },
+] as const;
+
+function parseGNewsRSS(xml: string): { title: string; url: string; description: string; source: string; publishedAt: string }[] {
+  const items: { title: string; url: string; description: string; source: string; publishedAt: string }[] = [];
+  const itemRx = /<item>([\s\S]*?)<\/item>/g;
+  let m: RegExpExecArray | null;
+  while ((m = itemRx.exec(xml)) !== null && items.length < 8) {
+    const c = m[1];
+    const title       = (c.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ?? c.match(/<title>(.*?)<\/title>/))?.[1]?.trim() ?? "";
+    const url         = (c.match(/<link>(.*?)<\/link>/) ?? c.match(/<link\s[^>]*href="(.*?)"/i))?.[1]?.trim() ?? "";
+    const description = ((c.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) ?? c.match(/<description>(.*?)<\/description>/))?.[1] ?? "").replace(/<[^>]+>/g, "").trim().slice(0, 260);
+    const publishedAt = c.match(/<pubDate>(.*?)<\/pubDate>/)?.[1]?.trim() ?? "";
+    const source      = c.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1]?.trim() ?? "";
+    if (title) items.push({ title, url, description, source, publishedAt });
+  }
+  return items;
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+}
+
 function ChartTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -145,6 +177,11 @@ export default function AdminPage() {
   const [sportsDate,        setSportsDate]        = useState(() => new Date().toISOString().split("T")[0]);
   const [sportsLeagueFilter,setSportsLeagueFilter] = useState("");
   const [sportsLoading,     setSportsLoading]     = useState(false);
+
+  // Radar de Noticias MX
+  const [newsRadar,       setNewsRadar]       = useState<Record<string, { title: string; url: string; description: string; source: string; publishedAt: string }[]>>({});
+  const [newsLoading,     setNewsLoading]     = useState(false);
+  const [newsCatFilter,   setNewsCatFilter]   = useState<string>("Todos");
 
   // Editar mercado
   const [editingMarketId, setEditingMarketId] = useState<string | null>(null);
@@ -774,6 +811,134 @@ export default function AdminPage() {
       fetchAll();
     } catch (err: any) { toast.error(err.message); }
     finally { setActionLoading(null); }
+  };
+
+  // ── Radar de Noticias MX ────────────────────────────────────────────────────
+  const fetchNewsRadar = async () => {
+    setNewsLoading(true);
+    try {
+      const base = import.meta.env.VITE_SUPABASE_URL;
+      const results = await Promise.all(
+        NEWS_CATEGORIES.map(async (cat) => {
+          const res = await fetch(`${base}/functions/v1/fetch-news?q=${encodeURIComponent(cat.query)}`);
+          const xml = await res.text();
+          return { key: cat.key, articles: parseGNewsRSS(xml) };
+        })
+      );
+      const byCategory: Record<string, any[]> = {};
+      results.forEach(({ key, articles }) => { byCategory[key] = articles; });
+      setNewsRadar(byCategory);
+      const total = Object.values(byCategory).reduce((s, a) => s + a.length, 0);
+      toast.success(`${total} noticias cargadas en ${NEWS_CATEGORIES.length} categorías`);
+    } catch (err: any) {
+      toast.error(err.message || "Error cargando noticias");
+    } finally {
+      setNewsLoading(false);
+    }
+  };
+
+  const createMarketFromArticle = async (article: { title: string; url: string; description: string; source: string }, category: string) => {
+    const key = "news-" + article.url.slice(-20);
+    setActionLoading(key);
+    try {
+      const titleRaw = article.title.replace(/\s*-\s*[\w\s]+$/, "").trim();
+      const title = `¿Se confirmará: "${titleRaw.slice(0, 75)}${titleRaw.length > 75 ? "…" : ""}"?`;
+      const { error } = await supabase.from("markets").insert({
+        title,
+        subject_name: article.source || "Noticias México",
+        category,
+        market_type: "binary",
+        yes_percent: 50,
+        yes_odds: 2.0,
+        no_odds: 2.0,
+        closes_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        status: "draft",
+        total_pool: 0,
+        bettor_count: 0,
+        is_trending: false,
+        description: `${article.description}\n\nFuente: ${article.source || "Google News"}\nVerificar en: ${article.url}`,
+      });
+      if (error) throw error;
+      logEvent("market_created", "news-article", { category, source: article.source });
+      toast.success("Borrador creado desde noticia");
+      fetchAll();
+    } catch (err: any) {
+      toast.error(err.message || "Error creando mercado");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const exportNewsPDF = async () => {
+    if (!Object.keys(newsRadar).length) { toast.error("Primero actualiza las noticias"); return; }
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+    const doc = new jsPDF();
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const total   = Object.values(newsRadar).reduce((s, a) => s + a.length, 0);
+
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 45, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(19);
+    doc.setFont("helvetica", "bold");
+    doc.text("Lucebase — Radar de Noticias México", 14, 18);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generado: ${dateStr}`, 14, 28);
+    doc.text(`${total} artículos · ${NEWS_CATEGORIES.length} categorías · Fuente: Google News MX`, 14, 36);
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(8.5);
+    doc.text("Los URLs incluidos permiten verificar cada noticia directamente en su fuente original. Información referencial.", 14, 54, { maxWidth: 182 });
+
+    let y = 63;
+    for (const cat of NEWS_CATEGORIES) {
+      const articles = newsRadar[cat.key as string] ?? [];
+      if (!articles.length) continue;
+      if (y > 240) { doc.addPage(); y = 18; }
+      const [r, g, b] = hexToRgb(cat.color);
+      doc.setFillColor(r, g, b);
+      doc.rect(14, y, 182, 9, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${cat.emoji}  ${cat.key}`, 18, y + 6);
+      y += 13;
+      autoTable(doc, {
+        startY: y,
+        head: [["#", "Titular", "Fuente", "Fecha", "URL para verificar"]],
+        body: articles.map((a, i) => [
+          String(i + 1),
+          a.title.slice(0, 72),
+          a.source || "Google News",
+          a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("es-MX") : "—",
+          a.url.slice(0, 55),
+        ]),
+        headStyles:         { fillColor: [r, g, b], fontSize: 8, fontStyle: "bold" },
+        bodyStyles:         { fontSize: 7.5 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: {
+          0: { cellWidth: 8,  halign: "center" },
+          1: { cellWidth: 64 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 22, halign: "center" },
+          4: { cellWidth: 58, textColor: [37, 99, 235] },
+        },
+        margin: { left: 14, right: 14 },
+        didDrawPage: () => { y = 18; },
+      });
+      y = (doc as any).lastAutoTable.finalY + 12;
+    }
+    const pages = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Lucebase · Radar Noticias MX · ${dateStr} · Pág. ${i}/${pages}`, 105, 290, { align: "center" });
+    }
+    doc.save(`lucebase-noticias-mx-${now.toISOString().slice(0, 10)}.pdf`);
+    toast.success("PDF generado correctamente");
   };
 
   // ── Deportes ────────────────────────────────────────────────────────────────
@@ -3583,6 +3748,169 @@ export default function AdminPage() {
 
             return (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+                {/* ── Radar de Noticias MX ── */}
+                <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e8ecf0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                  {/* Header del radar */}
+                  <div style={{ padding: "18px 22px", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#fbbf24,#f59e0b)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📡</div>
+                      <div>
+                        <h3 style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", margin: 0, letterSpacing: "-0.02em" }}>Radar de Noticias MX</h3>
+                        <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>Política · Finanzas · Morbo · Diplomacia · Tendencias · y más</p>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        onClick={exportNewsPDF}
+                        disabled={!Object.keys(newsRadar).length}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                          borderRadius: 9, border: "1.5px solid #e2e8f0",
+                          background: Object.keys(newsRadar).length ? "#f8fafc" : "#f1f5f9",
+                          color: Object.keys(newsRadar).length ? "#0f172a" : "#94a3b8",
+                          fontSize: 12, fontWeight: 700, cursor: Object.keys(newsRadar).length ? "pointer" : "not-allowed",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        <FileText size={13} /> Exportar PDF
+                      </button>
+                      <button
+                        onClick={fetchNewsRadar}
+                        disabled={newsLoading}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6, padding: "8px 18px",
+                          borderRadius: 9, border: "none",
+                          background: newsLoading ? "#94a3b8" : "linear-gradient(135deg,#f59e0b,#d97706)",
+                          color: "#fff", fontSize: 12, fontWeight: 700,
+                          cursor: newsLoading ? "not-allowed" : "pointer", fontFamily: "inherit",
+                          boxShadow: newsLoading ? "none" : "0 3px 10px rgba(217,119,6,0.35)",
+                        }}
+                      >
+                        {newsLoading ? <RefreshCw size={13} style={{ animation: "spin 1s linear infinite" }} /> : <span>📡</span>}
+                        {newsLoading ? "Cargando…" : "Actualizar noticias"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Chips de categoría */}
+                  {Object.keys(newsRadar).length > 0 && (
+                    <div style={{ padding: "12px 22px", borderBottom: "1px solid #f1f5f9", display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {["Todos", ...NEWS_CATEGORIES.map(c => c.key)].map((cat) => {
+                        const catDef = NEWS_CATEGORIES.find(c => c.key === cat);
+                        const count  = cat === "Todos"
+                          ? Object.values(newsRadar).reduce((s, a) => s + a.length, 0)
+                          : (newsRadar[cat]?.length ?? 0);
+                        const active = newsCatFilter === cat;
+                        return (
+                          <button key={cat} onClick={() => setNewsCatFilter(cat)} style={{
+                            display: "flex", alignItems: "center", gap: 5,
+                            padding: "5px 12px", borderRadius: 20,
+                            background: active ? (catDef?.color ?? "#0f172a") : "#f8fafc",
+                            color: active ? "#fff" : "#64748b",
+                            border: `1.5px solid ${active ? (catDef?.color ?? "#0f172a") : "#e2e8f0"}`,
+                            fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                          }}>
+                            {catDef?.emoji} {cat}
+                            <span style={{
+                              background: active ? "rgba(255,255,255,0.25)" : "#e2e8f0",
+                              color: active ? "#fff" : "#64748b",
+                              borderRadius: 10, padding: "0 6px", fontSize: 10, fontWeight: 800,
+                            }}>{count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Artículos */}
+                  {Object.keys(newsRadar).length > 0 && (() => {
+                    const showCats = newsCatFilter === "Todos"
+                      ? NEWS_CATEGORIES.map(c => c.key as string)
+                      : [newsCatFilter];
+
+                    return (
+                      <div style={{ maxHeight: 520, overflowY: "auto" }}>
+                        {showCats.map((catKey) => {
+                          const articles = newsRadar[catKey] ?? [];
+                          const catDef   = NEWS_CATEGORIES.find(c => c.key === catKey);
+                          if (!articles.length) return null;
+                          return (
+                            <div key={catKey}>
+                              <div style={{ padding: "8px 22px", background: catDef?.bg ?? "#f8fafc", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 7 }}>
+                                <span style={{ fontSize: 13 }}>{catDef?.emoji}</span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: catDef?.color ?? "#0f172a" }}>{catKey}</span>
+                                <span style={{ fontSize: 11, color: "#94a3b8" }}>· {articles.length} artículos</span>
+                              </div>
+                              {articles.map((article, idx) => {
+                                const aKey = "news-" + article.url.slice(-20);
+                                const isCreating = actionLoading === aKey;
+                                return (
+                                  <div key={idx} style={{
+                                    display: "flex", alignItems: "flex-start", gap: 14,
+                                    padding: "12px 22px",
+                                    borderBottom: "1px solid #f8fafc",
+                                  }}>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <p style={{ fontSize: 13, fontWeight: 600, color: "#0f172a", margin: "0 0 3px", lineHeight: 1.4 }}>
+                                        {article.title}
+                                      </p>
+                                      {article.description && (
+                                        <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 5px", lineHeight: 1.4 }}>
+                                          {article.description}
+                                        </p>
+                                      )}
+                                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                                        {article.source && (
+                                          <span style={{ fontSize: 10, fontWeight: 700, color: catDef?.color ?? "#64748b", background: catDef?.bg ?? "#f8fafc", padding: "2px 8px", borderRadius: 10 }}>
+                                            {article.source}
+                                          </span>
+                                        )}
+                                        {article.publishedAt && (
+                                          <span style={{ fontSize: 10, color: "#94a3b8" }}>
+                                            {new Date(article.publishedAt).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
+                                          </span>
+                                        )}
+                                        <a href={article.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
+                                          Ver fuente ↗
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => createMarketFromArticle(article, catKey)}
+                                      disabled={!!actionLoading}
+                                      style={{
+                                        flexShrink: 0, display: "flex", alignItems: "center", gap: 5,
+                                        padding: "7px 13px", borderRadius: 8,
+                                        background: isCreating ? "#f1f5f9" : "#eff6ff",
+                                        color: isCreating ? "#94a3b8" : "#2563eb",
+                                        border: `1.5px solid ${isCreating ? "#e2e8f0" : "#bfdbfe"}`,
+                                        fontSize: 11, fontWeight: 700, cursor: actionLoading ? "not-allowed" : "pointer",
+                                        fontFamily: "inherit", whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {isCreating ? <RefreshCw size={10} style={{ animation: "spin 1s linear infinite" }} /> : <Plus size={10} />}
+                                      {isCreating ? "…" : "Crear mercado"}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Estado vacío */}
+                  {!Object.keys(newsRadar).length && !newsLoading && (
+                    <div style={{ padding: "36px 22px", textAlign: "center" }}>
+                      <p style={{ fontSize: 28, margin: "0 0 8px" }}>📡</p>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: "0 0 4px" }}>Sin noticias cargadas</p>
+                      <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>Haz clic en "Actualizar noticias" para traer las últimas noticias de México.</p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
