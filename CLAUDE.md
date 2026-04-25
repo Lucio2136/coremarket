@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # Dev server en http://localhost:8080
 npm run build        # Build de producción
 npm run lint         # ESLint
+npm run deploy       # Push a GitHub + deploy a lucebase.com (SIEMPRE usar después de cambios)
 npm run test         # Vitest una vez
 npm run test:watch   # Vitest en modo watch
 ```
